@@ -753,6 +753,7 @@ let cachedCats=[];
 let cachedRates={};
 let cachedSlots={};
 let cachedDP={};
+let cachedSettings={};
 
 // Load settings from Firestore
 async function loadSettings(){
@@ -760,16 +761,20 @@ async function loadSettings(){
     const snap = await getDoc(doc(db,'settings','main'));
     if(snap.exists()){
       const d = snap.data();
-      cachedCats     = d.cats       || getDefaultCats();
+      cachedCats     = (d.cats && d.cats.length) ? d.cats : getDefaultCats();
       cachedRates    = d.rates      || {};
       cachedSlots    = d.slots      || {};
       cachedDP       = d.dropPoints || {};
-      cachedSettings = d;
+      cachedSettings = d || {};
     } else {
       cachedCats = getDefaultCats();
       cachedSettings = {};
     }
-  } catch(e){ cachedCats = getDefaultCats(); cachedSettings={}; }
+  } catch(e){ 
+    console.warn('loadSettings error:', e);
+    cachedCats = getDefaultCats(); 
+    cachedSettings = {};
+  }
 }
 
 function getDefaultCats(){
@@ -785,24 +790,28 @@ function getDefaultCats(){
 
 function getCatRate(key, qty){ 
   const defaultRates={Biasa:150000,Skincare:180000,Elektronik:175000,Makanan:145000,Rokok:120000,Lainnya:150000};
-  const normalRate = cachedRates[key] || defaultRates[key] || 150000;
+  const normalRate = (cachedRates && cachedRates[key]) || defaultRates[key] || 150000;
   // Cek harga borongan — hanya aktif kalau admin nyalakan
-  const bulkActive = (cachedSettings?.bulkActive||{})[key];
-  const bulkRate   = (cachedSettings?.bulkRates||{})[key];
-  const bulkMin    = (cachedSettings?.bulkMin||{})[key];
-  if(bulkActive && bulkRate && bulkMin && qty && parseFloat(qty) >= bulkMin){
-    return bulkRate;
-  }
+  try {
+    const s = cachedSettings || {};
+    const bulkActive = (s.bulkActive||{})[key];
+    const bulkRate   = (s.bulkRates||{})[key];
+    const bulkMin    = (s.bulkMin||{})[key];
+    if(bulkActive && bulkRate && bulkMin && qty && parseFloat(qty) >= bulkMin){
+      return bulkRate;
+    }
+  } catch(e){}
   return normalRate;
 }
 
 // ── ORDER FORM ───────────────────────────
 async function initOrderForm(){
   await loadSettings();
-  orderItems = [{id:1, cat:'', qty:'', rate:0, total:0}];
+  // Always start with 1 empty item
+  orderItems = [{id:Date.now(), cat:'', qty:'', rate:0, total:0, desc:''}];
+  updateRouteUI();
   renderItems();
   buildTripSelect();
-  updateRouteUI();
   calcTotal();
 }
 window.initOrderForm = initOrderForm;
@@ -1045,11 +1054,11 @@ window.doTrack = async function(){
     const snap = await getDocs(q);
     if(snap.empty){ el.innerHTML=`<div class="empty"><div class="empty-icon">🔍</div><div class="empty-ttl">Tidak Ditemukan</div><div class="empty-sub">Kode <strong>${code}</strong> tidak ditemukan.</div></div><button class="btn-wa" onclick="chatBagasi()">💬 Tanya Admin</button>`; return; }
     const o = {id:snap.docs[0].id, ...snap.docs[0].data()};
-    renderTrackResult(o, el);
+    await renderTrackResult(o, el);
   } catch(e){ el.innerHTML=`<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-ttl">Error</div><div class="empty-sub">${e.message}</div></div>`; }
 };
 
-function renderTrackResult(o, el){
+async function renderTrackResult(o, el){
   const curIdx = STATUS_STEPS.findIndex(s=>s.key===o.status);
   const curSt  = STATUS_STEPS[Math.max(0,curIdx)];
   const sc     = STATUS_COLOR[o.status]||STATUS_COLOR.pending;
@@ -1081,8 +1090,20 @@ function renderTrackResult(o, el){
 
   // Photos by courier
   const photos = (o.photos||[]);
-  const ownPhotos = photos.filter(p=>p.ownerName&&p.ownerName.toLowerCase()!=='tanpa nama');
-  const unknownPhotos = photos.filter(p=>!p.ownerName||p.ownerName.toLowerCase()==='tanpa nama');
+  const ownPhotos = photos.filter(p=>p.ownerName&&p.ownerName.toLowerCase()!=='tanpa nama'&&!p.ownerName.includes('(belum cocok)'));
+  const unknownPhotos = photos.filter(p=>!p.ownerName||p.ownerName.toLowerCase()==='tanpa nama'||p.ownerName.includes('(belum cocok)'));
+  
+  // Also fetch unknown photos from trip
+  let tripUnknownPhotos = [];
+  if(o.tripId){
+    try{
+      const tripSnap = await getDocs(query(collection(db,'trips'), where('id','==',o.tripId)));
+      if(!tripSnap.empty){
+        const tripData = tripSnap.docs[0].data();
+        tripUnknownPhotos = [...(tripData.unknownPhotos||[]), ...(tripData.pendingPhotos||[])];
+      }
+    }catch(e){}
+  }
   const photoHTML = ownPhotos.length ? `
     <div class="photo-gallery">
       <div class="photo-gallery-ttl">📸 Foto Barang di Jakarta</div>
@@ -1092,14 +1113,15 @@ function renderTrackResult(o, el){
     </div>` : '';
 
   // Unknown packages notice
-  const unknownHTML = unknownPhotos.length ? `
+  const allUnknownForCustomer = [...unknownPhotos, ...tripUnknownPhotos];
+  const unknownHTML = allUnknownForCustomer.length ? `
     <div class="unknown-box">
-      <div class="unknown-ttl">📦 Ada Paket Tanpa Nama</div>
-      <div class="unknown-desc">Kurir menemukan ${unknownPhotos.length} paket yang tidak jelas nama pemiliknya. Jika kamu merasa ini barangmu, lihat foto di bawah dan hubungi admin dengan bukti resi ekspedisi kamu dari Indonesia.</div>
+      <div class="unknown-ttl">📦 Foto Paket di Basecamp Jakarta</div>
+      <div class="unknown-desc">Terdapat foto paket yang belum terkonfirmasi pemiliknya di basecamp Jakarta. Jika kamu merasa ada barangmu yang belum muncul di atas, periksa foto di bawah ini. Jika itu milikmu, hubungi admin dengan bukti resi ekspedisi dari Indonesia.</div>
       <div class="photo-grid" style="margin-top:10px">
-        ${unknownPhotos.map(p=>`<div class="photo-item"><img src="${p.url}" onerror="this.src='https://via.placeholder.com/200x150'"><div class="photo-item-cap">Tanpa Nama · ${new Date(p.ts).toLocaleDateString('id-ID',{day:'numeric',month:'short'})}</div></div>`).join('')}
+        ${allUnknownForCustomer.map(p=>`<div class="photo-item"><img src="${p.url}" onerror="this.src='https://via.placeholder.com/200x150/1A1A1A/C9A84C?text=Foto'"><div class="photo-item-cap">${p.ownerName||'Tanpa Nama'} · ${new Date(p.ts).toLocaleDateString('id-ID',{day:'numeric',month:'short'})}</div></div>`).join('')}
       </div>
-      <button class="btn-wa" style="margin-top:10px" onclick="openWA('${ADMIN_BAGASI}','Halo Admin, saya menemukan foto paket tanpa nama di tracking saya (${o.code}). Saya melampirkan bukti resi saya untuk mengklaim paket tersebut.')">💬 Hubungi Admin dengan Bukti Resi</button>
+      <button class="btn-wa" style="margin-top:10px;width:100%;background:linear-gradient(135deg,#075E54,#25D366);color:#fff;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:700;cursor:pointer" onclick="openWA('${ADMIN_BAGASI}','Halo Admin M.M Baggage, saya melihat foto paket tanpa nama di tracking order saya (${o.code}). Saya melampirkan bukti resi ekspedisi saya untuk mengklaim paket tersebut. Mohon dikonfirmasi 🙏')">💬 Klaim Paket via WhatsApp Admin</button>
     </div>` : '';
 
   // Invoice
