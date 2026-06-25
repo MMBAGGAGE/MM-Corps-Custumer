@@ -33,8 +33,8 @@ body{font-family:'Inter',sans-serif;background:var(--dark);color:var(--cream);mi
 .splash-brand{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;letter-spacing:4px;background:linear-gradient(135deg,var(--gold3),var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .splash-sub{font-size:10px;letter-spacing:5px;color:var(--muted);margin-top:4px;text-transform:uppercase;text-align:center}
 .splash-bar{width:80px;height:2px;background:var(--border);border-radius:2px;margin:20px auto 0;overflow:hidden}
-.splash-fill{height:100%;background:linear-gradient(to right,var(--gold3),var(--gold));width:0;animation:load 1.8s ease forwards}
-@keyframes load{to{width:100%}}
+.splash-fill{height:100%;background:linear-gradient(to right,var(--gold3),var(--gold));animation:load 2.2s ease forwards}
+@keyframes load{from{width:0}to{width:100%}}
 
 /* HOME */
 #home{background:var(--dark);overflow-y:auto}
@@ -1429,19 +1429,27 @@ window.addEventListener('load', ()=>{
   // Firebase anonymous auth
   auth.signInAnonymously().catch(e=>console.warn('Anon auth:',e));
 
-  // Preload settings
-  loadSettings();
+  // Preload settings in background
+  loadSettings().catch(e=>console.warn('Settings:', e));
 
-  // Splash
+  // Splash - fixed 2.5s then go to home regardless
+  const sp = document.getElementById('splash');
   setTimeout(()=>{
-    const sp = document.getElementById('splash');
+    sp.style.transition = 'opacity 0.6s';
     sp.style.opacity = '0';
     setTimeout(()=>{
       sp.style.display = 'none';
       sp.classList.remove('active');
-      showScreen('home');
-    }, 800);
-  }, 2000);
+      // Force show home
+      document.querySelectorAll('.screen').forEach(s=>{
+        s.classList.remove('active');
+        s.style.display = 'none';
+      });
+      const home = document.getElementById('home');
+      home.style.display = 'flex';
+      home.classList.add('active');
+    }, 600);
+  }, 2200);
 });
 </script>
 </body>
