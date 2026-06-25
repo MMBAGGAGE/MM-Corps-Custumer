@@ -744,14 +744,16 @@ async function loadSettings(){
     const snap = await getDoc(doc(db,'settings','main'));
     if(snap.exists()){
       const d = snap.data();
-      cachedCats  = d.cats  || getDefaultCats();
-      cachedRates = d.rates || {};
-      cachedSlots = d.slots || {};
-      cachedDP    = d.dropPoints || {};
+      cachedCats     = d.cats       || getDefaultCats();
+      cachedRates    = d.rates      || {};
+      cachedSlots    = d.slots      || {};
+      cachedDP       = d.dropPoints || {};
+      cachedSettings = d;
     } else {
       cachedCats = getDefaultCats();
+      cachedSettings = {};
     }
-  } catch(e){ cachedCats = getDefaultCats(); }
+  } catch(e){ cachedCats = getDefaultCats(); cachedSettings={}; }
 }
 
 function getDefaultCats(){
@@ -765,7 +767,18 @@ function getDefaultCats(){
   ];
 }
 
-function getCatRate(key){ return cachedRates[key] || {Biasa:150000,Skincare:180000,Elektronik:175000,Makanan:145000,Rokok:120000,Lainnya:150000}[key] || 150000; }
+function getCatRate(key, qty){ 
+  const defaultRates={Biasa:150000,Skincare:180000,Elektronik:175000,Makanan:145000,Rokok:120000,Lainnya:150000};
+  const normalRate = cachedRates[key] || defaultRates[key] || 150000;
+  // Cek harga borongan — hanya aktif kalau admin nyalakan
+  const bulkActive = (cachedSettings?.bulkActive||{})[key];
+  const bulkRate   = (cachedSettings?.bulkRates||{})[key];
+  const bulkMin    = (cachedSettings?.bulkMin||{})[key];
+  if(bulkActive && bulkRate && bulkMin && qty && parseFloat(qty) >= bulkMin){
+    return bulkRate;
+  }
+  return normalRate;
+}
 
 // ── ORDER FORM ───────────────────────────
 async function initOrderForm(){
@@ -816,7 +829,8 @@ function renderItems(){
         <div class="field"><label>Harga/satuan (Rp)</label><input type="number" value="${rate}" inputmode="numeric" oninput="updateItemRate(${i},this.value)"></div>
       </div>
       <div class="field"><label>Deskripsi Barang *</label><input type="text" value="${item.desc||''}" placeholder="Contoh: parfum oud 3 botol" oninput="updateItemDesc(${i},this.value)"></div>
-      ${item.cat&&item.qty?`<div style="font-size:12px;color:var(--gold3);font-weight:700;text-align:right">Subtotal: ${fmtRp((parseFloat(item.qty)||0)*(item.rate||rate))}</div>`:''}
+      ${bulkInfo}${bulkActiveInfo}
+      ${item.cat&&item.qty?`<div style="font-size:12px;color:var(--gold3);font-weight:700;text-align:right;margin-top:4px">Subtotal: ${fmtRp((parseFloat(item.qty)||0)*rate)}</div>`:''}
     </div>`;
   }).join('');
 }
@@ -830,9 +844,17 @@ window.updateItemDesc = function(i,v){ orderItems[i].desc=v; };
 
 function calcTotal(){
   const total = orderItems.reduce((s,it)=>{
-    const q=parseFloat(it.qty)||0; const r=it.rate||getCatRate(it.cat); return s+(q*r);
+    const q=parseFloat(it.qty)||0;
+    const r=it.rate||getCatRate(it.cat, it.qty);
+    return s+(q*r);
   },0);
-  const lines = orderItems.filter(it=>it.cat&&it.qty).map(it=>`${it.cat}: ${it.qty} ${it.type||'kg'} × ${fmtRp(it.rate||getCatRate(it.cat))}`).join(', ');
+  const lines = orderItems.filter(it=>it.cat&&it.qty).map(it=>{
+    const r=it.rate||getCatRate(it.cat, it.qty);
+    const bulkMin=(cachedSettings?.bulkMin||{})[it.cat];
+    const bulkRate=(cachedSettings?.bulkRates||{})[it.cat];
+    const isBulk=bulkRate&&bulkMin&&parseFloat(it.qty)>=bulkMin;
+    return `${it.cat}: ${it.qty} ${it.type||'kg'} × ${fmtRp(r)}${isBulk?' 🎁 Borongan':''}`;
+  }).join(' | ');
   document.getElementById('preview-rate').textContent = lines || 'Isi barang di atas';
   document.getElementById('preview-total').textContent = fmtRp(total);
 }
