@@ -465,16 +465,40 @@ function TNC(t) {
 }
 
 // ── SETTINGS ─────────────────────────────────
+function normCat(c) {
+  // Accept both customer {k,l,t} and admin {key,label,type} formats
+  return {
+    k: c.k || c.key || "",
+    l: c.l || c.label || c.key || c.k || "",
+    t: c.t || c.type || "kg",
+    routes: c.routes || null,
+    rate: (c.rate != null ? c.rate : null)
+  };
+}
 function loadCFG() {
   fsGet("settings/main", function(d){
     if (!d || !d.fields) return;
     var cfg = fromFS(d.fields);
-    if (cfg.cats && cfg.cats.length) CFG.cats = cfg.cats;
-    if (cfg.rates) CFG.rates = cfg.rates;
+    if (cfg.cats && cfg.cats.length) {
+      CFG.cats = cfg.cats.map(normCat);
+      // Build rates map from cats if cat has its own rate
+      var rmap = {};
+      for (var i=0;i<CFG.cats.length;i++) {
+        var c = CFG.cats[i];
+        if (c.rate != null && c.rate !== "") rmap[c.k] = parseFloat(c.rate) || 0;
+      }
+      // Merge: explicit rates object wins, else use per-cat rate
+      if (Object.keys(rmap).length) CFG.rates = Object.assign({}, rmap, cfg.rates || {});
+    }
+    if (cfg.rates) CFG.rates = Object.assign({}, CFG.rates, cfg.rates);
     if (cfg.bulkRates) CFG.bulkRates = cfg.bulkRates;
     if (cfg.bulkMin) CFG.bulkMin = cfg.bulkMin;
     if (cfg.bulkActive) CFG.bulkActive = cfg.bulkActive;
     if (cfg.dropPoints) CFG.dropPoints = cfg.dropPoints;
+    // Re-render if currently on order page
+    if (document.getElementById("p-order") && document.getElementById("p-order").className.indexOf("show")>=0) {
+      RI(); CALC();
+    }
   });
 }
 
