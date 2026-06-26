@@ -350,41 +350,50 @@ function getToken(cb) {
   }).catch(function(){ cb(""); });
 }
 
-// ── FIRESTORE REST ───────────────────────────
+// ── FIRESTORE REST (token via Authorization header) ──
+function authHeaders(tok, hasBody) {
+  var h = {};
+  if (hasBody) h["Content-Type"] = "application/json";
+  if (tok) h["Authorization"] = "Bearer " + tok;
+  return h;
+}
 function fsGet(path, cb) {
   getToken(function(tok){
-    fetch(FSB + "/" + path + (tok?"?access_token="+tok:""))
+    fetch(FSB + "/" + path, {headers: authHeaders(tok, false)})
       .then(function(r){ return r.json(); }).then(cb).catch(function(){ cb(null); });
   });
 }
 function fsList(col, cb) {
   getToken(function(tok){
-    fetch(FSB + "/" + col + "?pageSize=100" + (tok?"&access_token="+tok:""))
+    fetch(FSB + "/" + col + "?pageSize=300", {headers: authHeaders(tok, false)})
       .then(function(r){ return r.json(); })
-      .then(function(d){ cb(d.documents || []); }).catch(function(){ cb([]); });
+      .then(function(d){ cb((d && d.documents) || []); }).catch(function(){ cb([]); });
   });
 }
 function fsAdd(col, data, cb) {
   getToken(function(tok){
-    fetch(FSB + "/" + col + (tok?"?access_token="+tok:""), {
-      method:"POST", headers:{"Content-Type":"application/json"},
+    fetch(FSB + "/" + col, {
+      method:"POST", headers: authHeaders(tok, true),
       body: JSON.stringify({fields: toFS(data)})
     }).then(function(r){ return r.json(); }).then(cb).catch(function(){ cb(null); });
   });
 }
 function fsPatch(docPath, data, cb) {
   getToken(function(tok){
-    fetch(FSB + "/" + docPath + (tok?"?access_token="+tok:""), {
-      method:"PATCH", headers:{"Content-Type":"application/json"},
+    // Build updateMask so only given fields change
+    var mask = "";
+    for (var k in data) if (data.hasOwnProperty(k)) mask += (mask?"&":"?") + "updateMask.fieldPaths=" + encodeURIComponent(k);
+    fetch(FSB + "/" + docPath + mask, {
+      method:"PATCH", headers: authHeaders(tok, true),
       body: JSON.stringify({fields: toFS(data)})
     }).then(function(r){ return r.json(); }).then(cb || function(){}).catch(function(){});
   });
 }
 function fsQuery(col, field, val, cb) {
   getToken(function(tok){
-    var url = "https://firestore.googleapis.com/v1/projects/" + PID + "/databases/(default)/documents:runQuery" + (tok?"?access_token="+tok:"");
+    var url = "https://firestore.googleapis.com/v1/projects/" + PID + "/databases/(default)/documents:runQuery";
     var body = {structuredQuery:{from:[{collectionId:col}],where:{fieldFilter:{field:{fieldPath:field},op:"EQUAL",value:toFSVal(val)}}}};
-    fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)})
+    fetch(url, {method:"POST", headers: authHeaders(tok, true), body: JSON.stringify(body)})
       .then(function(r){ return r.json(); })
       .then(function(d){
         cb((d||[]).filter(function(x){ return x.document; }).map(function(x){
@@ -669,7 +678,7 @@ function SUB() {
       var dp = (CFG.dropPoints||{})[rute] || {};
       var il = valid.map(function(it){ return "<div style='font-size:12px;color:#888;margin-bottom:3px'>\u2022 " + it.cat + ": " + it.qty + " " + (it.type||"kg") + " \u2014 " + it.desc + "</div>"; }).join("");
       var ch = "<div class='info-box'><div class='info-ttl'>\uD83D\uDCE6 Barang</div>" + il + "<div style='font-size:13px;font-weight:700;color:#C9A84C;margin-top:7px'>Est. Total: " + rp(tot) + "</div></div>";
-      if (dp.address) ch += "<div style='background:rgba(13,100,100,.08);border:1px solid #0D3535;border-radius:11px;padding:12px;margin-bottom:10px'><div style='font-size:8px;font-weight:700;letter-spacing:2px;color:#12908F;margin-bottom:5px'>\uD83D\uDCCD DROP POINT</div><div style='font-size:13px;color:#F0EBE0'>" + dp.address + "</div></div>";
+      ch += "<div style='background:rgba(212,160,23,.07);border:1px solid rgba(212,160,23,.2);border-radius:11px;padding:12px;margin-bottom:10px'><div style='font-size:8px;font-weight:700;letter-spacing:2px;color:#D4A017;margin-bottom:5px'>\u23F3 MENUNGGU KONFIRMASI</div><div style='font-size:12px;color:#C8C0B0;line-height:1.5'>Alamat drop point Jakarta akan diberikan setelah order kamu disetujui admin. Cek halaman status secara berkala.</div></div>";
       ch += "<div class='warn2'><div style='font-size:11px;font-weight:700;color:#C0392B;margin-bottom:3px'>\u26A0\uFE0F Ingat</div><div style='font-size:12px;color:#C0392B;line-height:1.5'>Harga belum termasuk bea cukai & pajak.</div></div>";
       E("c-detail").innerHTML = ch;
       P("confirm");
@@ -768,10 +777,22 @@ function RTRACK(o, el) {
   }
   var canCan = !(o.status==="cancelled" || o.status==="delivered");
   if (canCan && o.tripDate) { var df = Math.ceil((new Date(o.tripDate+"T00:00:00")-new Date())/864e5); canCan = df>=4; }
+  // Drop point: only show AFTER admin approves (status past pending, not cancelled)
+  var dropH = "";
+  var isApproved = o.status && o.status !== "pending" && o.status !== "cancelled";
+  if (isApproved) {
+    var dpAddr = ((CFG.dropPoints||{})[o.route]||{}).address || "";
+    if (dpAddr) {
+      dropH = "<div style='background:rgba(13,100,100,.1);border:1px solid #0D3535;border-radius:11px;padding:13px;margin-bottom:11px'><div style='font-size:9px;font-weight:700;letter-spacing:1.5px;color:#12908F;margin-bottom:6px'>\uD83D\uDCCD ALAMAT DROP POINT</div><div style='font-size:13px;color:#F0EBE0;line-height:1.5'>" + dpAddr + "</div></div>";
+    }
+  } else if (o.status === "pending") {
+    dropH = "<div style='background:rgba(212,160,23,.07);border:1px solid rgba(212,160,23,.2);border-radius:11px;padding:13px;margin-bottom:11px'><div style='font-size:9px;font-weight:700;letter-spacing:1.5px;color:#D4A017;margin-bottom:6px'>\u23F3 MENUNGGU PERSETUJUAN ADMIN</div><div style='font-size:12px;color:#C8C0B0;line-height:1.5'>Alamat drop point akan muncul di sini setelah order kamu disetujui admin.</div></div>";
+  }
   el.innerHTML = "<div class='res'>"
     + "<div class='res-top'><div class='res-code'>" + (o.code||o.id) + (o.tripId?" \u00B7 "+o.tripId:"") + "</div><div class='res-name'>" + (o.name||"-") + "</div><div class='res-route'>\u2708\uFE0F " + (o.route||"") + "</div></div>"
     + "<div class='res-body'>"
     + "<span class='st-badge' style='background:" + sc.bg + ";color:" + sc.c + "'>" + cs.e + " " + cs.l + "</span>"
+    + dropH
     + itH
     + "<div class='dg'>"
     + "<div class='dg-item'><label>Est. Total</label><span class='g'>" + rp(o.totalEst) + "</span></div>"
