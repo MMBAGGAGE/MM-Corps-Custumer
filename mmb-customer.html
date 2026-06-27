@@ -202,7 +202,47 @@ html,body{height:100%;background:#0A0A0A;color:#F5F0E8;font-family:-apple-system
     <div class="card" onclick="P('jadwal')"><div class="ci ci-p">&#128197;</div><div class="card-body"><div class="card-title">Jadwal Trip / Flight Schedule</div><div class="card-sub">Slot &amp; jadwal / Slots &amp; schedule</div></div><div class="card-arr">&#8250;</div></div>
     <div class="card" onclick="P('tiket')"><div class="ci ci-g">&#9992;&#65039;</div><div class="card-body"><div class="card-badge">New</div><div class="card-title">Tiket Pesawat Internasional</div><div class="card-sub">Tiket pesawat / Flight tickets</div></div><div class="card-arr">&#8250;</div></div>
     <div class="card" onclick="P('visa')"><div class="ci ci-p">&#128499;</div><div class="card-body"><div class="card-badge">New</div><div class="card-title">Visa VOA Mesir</div><div class="card-sub">Visa VOA Mesir / Egypt VOA Visa</div></div><div class="card-arr">&#8250;</div></div>
-    <div class="card" onclick="WA('Halo Admin M.M Baggage')"><div class="ci ci-w">&#128172;</div><div class="card-body"><div class="card-title">Hubungi Admin Bagasi</div><div class="card-sub">Chat admin &middot; Fast response</div></div><div class="card-arr">&#8250;</div></div>
+    <div class="card" onclick="WA('Halo Admin M.M Baggage')"><div class="ci ci-w">&#128172;</div><div class="card-body"><div class="card-title">Hubungi Admin Bagasi</div><div class="card-sub">Chat admin &middot; Fast response</div></div>
+    <div class="card" onclick="P('feedback')"><div class="ci ci-p">&#11088;</div><div class="card-body"><div class="card-title">Penilaian &amp; Saran</div><div class="card-sub">Beri rating &amp; masukan / Rate &amp; feedback</div></div><div class="card-arr">&#8250;</div></div><div class="card-arr">&#8250;</div></div>
+  </div>
+</div>
+<div id="p-feedback" class="page">
+  <div class="hdr"><div class="back" onclick="P('home')">&#8592;</div><div class="hdr-title">Penilaian &amp; Saran / Feedback</div></div>
+  <div class="bdy">
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-size:34px;margin-bottom:6px">&#11088;</div>
+      <div style="font-size:17px;font-weight:800">Beri Penilaian Pelayanan</div>
+      <div style="font-size:12px;color:#666">Masukanmu sangat berarti untuk kami<br><span style="color:#555">Your feedback matters to us</span></div>
+    </div>
+
+    <div class="sec"><div class="sec-lbl">Rating Pelayanan / Service Rating</div>
+      <div style="background:#111;border:1px solid #1E1E1E;border-radius:12px;padding:18px;text-align:center">
+        <div style="font-size:12px;color:#888;margin-bottom:12px">Seberapa puas kamu dengan pelayanan M.M Baggage?</div>
+        <div id="fb-stars" style="display:flex;justify-content:center;gap:10px;margin-bottom:6px">
+          <span onclick="FBSTAR(1)" id="fbs-1" style="font-size:38px;cursor:pointer;filter:grayscale(1);opacity:.4;transition:all .15s">&#11088;</span>
+          <span onclick="FBSTAR(2)" id="fbs-2" style="font-size:38px;cursor:pointer;filter:grayscale(1);opacity:.4;transition:all .15s">&#11088;</span>
+          <span onclick="FBSTAR(3)" id="fbs-3" style="font-size:38px;cursor:pointer;filter:grayscale(1);opacity:.4;transition:all .15s">&#11088;</span>
+          <span onclick="FBSTAR(4)" id="fbs-4" style="font-size:38px;cursor:pointer;filter:grayscale(1);opacity:.4;transition:all .15s">&#11088;</span>
+          <span onclick="FBSTAR(5)" id="fbs-5" style="font-size:38px;cursor:pointer;filter:grayscale(1);opacity:.4;transition:all .15s">&#11088;</span>
+        </div>
+        <div id="fb-star-label" style="font-size:12px;color:#C9A84C;font-weight:700;min-height:16px"></div>
+      </div>
+    </div>
+
+    <div class="sec"><div class="sec-lbl">Kesan / Impression</div>
+      <input type="text" id="fb-impression" placeholder="Kesanmu tentang M.M Baggage... / Your impression...">
+    </div>
+
+    <div class="sec"><div class="sec-lbl">Kritik &amp; Saran / Suggestions</div>
+      <textarea id="fb-suggestion" placeholder="Apa yang bisa kami tingkatkan? / What can we improve?" style="min-height:90px"></textarea>
+    </div>
+
+    <div class="sec"><div class="sec-lbl">Nama / Kode Order (opsional)</div>
+      <input type="text" id="fb-name" placeholder="Nama atau kode order kamu (opsional)">
+    </div>
+
+    <button class="btn btn-gold" onclick="KIRIMFEEDBACK()">&#128228; Kirim Penilaian / Submit Feedback</button>
+    <div id="fb-result" style="margin-top:10px"></div>
   </div>
 </div>
 <div id="p-tutorial" class="page">
@@ -551,6 +591,12 @@ function INIT() {
   E("r-cj").className = "rt-btn on"; E("r-jc").className = "rt-btn";
   E("rcv-cj").style.display = "block"; E("rcv-jc").style.display = "none";
   RI(); TRIPS(); CALC();
+  // Hash routing: buka halaman feedback/tracking dari link
+  try {
+    var hash = (window.location.hash || "").replace("#","").toLowerCase();
+    if (hash === "feedback") { setTimeout(function(){ P("feedback"); }, 300); }
+    else if (hash === "track" || hash === "tracking") { setTimeout(function(){ P("track"); }, 300); }
+  } catch(e) {}
 }
 function RT(r, btn) {
   rute = r; tripId = "";
@@ -686,6 +732,23 @@ function CEKREF() {
       if (statusEl) statusEl.innerHTML = "<span style='font-size:11px;color:#C0392B'>\u274C Kode tidak aktif / Code inactive</span>";
       return;
     }
+    // Cek kedaluwarsa
+    if (r.expiry) {
+      var exp = new Date(r.expiry + "T23:59:59");
+      if (new Date() > exp) {
+        activeRef = null;
+        if (statusEl) statusEl.innerHTML = "<span style='font-size:11px;color:#C0392B'>\u274C Kode sudah kedaluwarsa / Code expired</span>";
+        return;
+      }
+    }
+    // Cek kuota pemakaian
+    var quota = parseInt(r.quota) || 0;
+    var used = parseInt(r.orderCount) || parseInt(r.usageCount) || 0;
+    if (quota > 0 && used >= quota) {
+      activeRef = null;
+      if (statusEl) statusEl.innerHTML = "<span style='font-size:11px;color:#C0392B'>\u274C Kuota kode sudah habis / Quota reached</span>";
+      return;
+    }
     activeRef = {code:codeRaw, discountPerKg:parseFloat(r.discountPerKg)||0, commissionPerKg:parseFloat(r.commissionPerKg)||0, ownerName:r.ownerName||""};
     var disc = activeRef.discountPerKg;
     if (statusEl) {
@@ -815,6 +878,47 @@ function KONFWA() {
   WA("Halo Admin M.M Baggage! \uD83D\uDC4B\n\n*ORDER BARU*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\uD83D\uDCCB Kode    : *" + o.code + "*\n\uD83D\uDC64 Pengirim: " + o.name + "\n\uD83D\uDCF1 WA      : " + o.phone + "\n\uD83D\uDDFA\uFE0F Rute    : " + o.route + "\n\u2708\uFE0F Trip     : " + o.tripId + "\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\uD83D\uDCE6 Barang:\n" + lines + "\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\uD83D\uDCB0 Est. Total: " + rp(o.totalEst) + "\n" + (o.note?"\uD83D\uDCDD Catatan: "+o.note+"\n":"") + "\nMohon dikonfirmasi. Terima kasih \uD83D\uDE4F");
 }
 
+// ── HALAMAN FEEDBACK (home) ──────────────────
+var _fbStar = 0;
+function FBSTAR(n) {
+  _fbStar = n;
+  var labels = ["", "Kurang \uD83D\uDE15", "Cukup \uD83D\uDE10", "Baik \uD83D\uDE42", "Bagus \uD83D\uDE0A", "Luar Biasa! \uD83E\uDD29"];
+  for (var i=1; i<=5; i++) {
+    var el = E("fbs-" + i);
+    if (el) {
+      if (i <= n) { el.style.filter = "none"; el.style.opacity = "1"; el.style.transform = "scale(1.1)"; }
+      else { el.style.filter = "grayscale(1)"; el.style.opacity = "0.4"; el.style.transform = "scale(1)"; }
+    }
+  }
+  if (E("fb-star-label")) E("fb-star-label").textContent = labels[n] || "";
+}
+function KIRIMFEEDBACK() {
+  if (_fbStar < 1) { toast("Pilih bintang dulu / Select rating first","err"); return; }
+  var impression = (V("fb-impression")||"").trim();
+  var suggestion = (V("fb-suggestion")||"").trim();
+  var name = (V("fb-name")||"").trim();
+  var star = _fbStar;
+  // Save to ratings collection (admin analytics) - type 'general'
+  fsAdd("ratings", {
+    type:"general", rating:star, impression:impression, comment:suggestion,
+    name:name, orderCode:name, ts:Date.now(), createdAt:new Date().toISOString()
+  }, function(res){
+    if (E("fb-result")) {
+      E("fb-result").innerHTML = "<div style='background:rgba(45,122,79,.1);border:1px solid rgba(45,122,79,.3);border-radius:10px;padding:13px;text-align:center'><div style='font-size:13px;font-weight:700;color:#4CAF7D'>\u2705 Terima kasih atas penilaianmu!</div><div style='font-size:11px;color:#888;margin-top:3px'>Thank you for your feedback!</div></div>";
+    }
+    toast("Terima kasih! Penilaianmu terkirim \uD83D\uDE4F","ok");
+    // Reset
+    _fbStar = 0;
+    if (E("fb-impression")) E("fb-impression").value = "";
+    if (E("fb-suggestion")) E("fb-suggestion").value = "";
+    if (E("fb-name")) E("fb-name").value = "";
+    FBSTAR(0);
+  });
+  // Also send via WhatsApp to admin
+  var starStr = ""; for (var s=0;s<star;s++) starStr += "\u2B50";
+  WA("Halo Admin M.M Baggage,\n\n*PENILAIAN PELAYANAN (Umum)*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\u2B50 Rating: " + starStr + " (" + star + "/5)\n" + (impression ? "\uD83D\uDCAD Kesan: " + impression + "\n" : "") + (suggestion ? "\uD83D\uDCAC Saran: " + suggestion + "\n" : "") + (name ? "\uD83D\uDC64 Dari: " + name : "") + "\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501");
+}
+
 // ── RATING ───────────────────────────────────
 var _selRating = 0;
 function _starHTML(sel, oid, code) {
@@ -843,6 +947,42 @@ function KIRIMRATING(oid, code) {
     _selRating = 0;
     setTimeout(TRACK, 700);
   });
+}
+
+// ── SALIN ALAMAT ─────────────────────────────
+function SALINALAMAT() {
+  var el = E("dp-addr-text");
+  var addr = el ? el.textContent : "";
+  if (!addr) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(addr).then(function(){ toast("Alamat disalin! / Address copied \u2705","ok"); }).catch(function(){ _fallbackCopyAddr(addr); });
+  } else { _fallbackCopyAddr(addr); }
+}
+function _fallbackCopyAddr(addr) {
+  try {
+    var ta = document.createElement("textarea");
+    ta.value = addr; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    document.execCommand("copy"); document.body.removeChild(ta);
+    toast("Alamat disalin! / Copied \u2705","ok");
+  } catch(e) { toast("Salin manual / Copy manually","info"); }
+}
+
+// ── DOWNLOAD FOTO ────────────────────────────
+function DLFOTO(url, fname) {
+  try {
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = (fname || "foto-mmbaggage") + ".jpg";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ document.body.removeChild(a); }, 500);
+    toast("Foto diunduh \u2705 / Photo downloaded","ok");
+  } catch(e) {
+    // Fallback: buka di tab baru biar bisa long-press save
+    window.open(url, "_blank");
+    toast("Tekan & tahan foto untuk simpan / Long-press to save","info");
+  }
 }
 
 // ── COPY CODE ────────────────────────────────
@@ -932,9 +1072,9 @@ function RTRACK(o, el) {
     for (var i=0;i<o.photos.length;i++) {
       var p = o.photos[i];
       if (p.mediaType === "video") {
-        phH += "<div class='pi'><video src='" + p.url + "' controls playsinline style='width:100%;aspect-ratio:4/3;object-fit:cover;display:block' onerror=\"this.parentElement.style.display='none'\"></video><div class='pi-cap'>\uD83C\uDFAC " + (p.ownerName||"") + "</div></div>";
+        phH += "<div class='pi'><video src='" + p.url + "' controls playsinline style='width:100%;aspect-ratio:4/3;object-fit:cover;display:block' onerror=\"this.parentElement.style.display='none'\"></video><div class='pi-cap'>\uD83C\uDFAC " + (p.ownerName||"") + " <span onclick='DLFOTO(\"" + p.url + "\",\"" + (o.code||"foto") + "_" + i + "\")' style='color:#C9A84C;cursor:pointer;font-weight:700'>\u2B07\uFE0F</span></div></div>";
       } else {
-        phH += "<div class='pi'><img src='" + p.url + "' loading='lazy' alt='Foto barang' onerror=\"this.parentElement.style.display='none'\"><div class='pi-cap'>" + (p.ownerName||"") + "</div></div>";
+        phH += "<div class='pi'><img src='" + p.url + "' loading='lazy' alt='Foto barang' onerror=\"this.parentElement.style.display='none'\"><div class='pi-cap'>" + (p.ownerName||"") + " <span onclick='DLFOTO(\"" + p.url + "\",\"" + (o.code||"foto") + "_" + i + "\")' style='color:#C9A84C;cursor:pointer;font-weight:700'>\u2B07\uFE0F Download</span></div></div>";
       }
     }
     phH += "</div></div>";
@@ -981,7 +1121,7 @@ function RTRACK(o, el) {
   if (isApproved) {
     var dpAddr = ((CFG.dropPoints||{})[o.route]||{}).address || "";
     if (dpAddr) {
-      dropH = "<div style='background:rgba(13,100,100,.1);border:1px solid #0D3535;border-radius:11px;padding:13px;margin-bottom:11px'><div style='font-size:9px;font-weight:700;letter-spacing:1.5px;color:#12908F;margin-bottom:6px'>\uD83D\uDCCD ALAMAT DROP POINT</div><div style='font-size:13px;color:#F0EBE0;line-height:1.5'>" + dpAddr + "</div></div>";
+      dropH = "<div style='background:rgba(13,100,100,.1);border:1px solid #0D3535;border-radius:11px;padding:13px;margin-bottom:11px'><div style='font-size:9px;font-weight:700;letter-spacing:1.5px;color:#12908F;margin-bottom:6px'>\uD83D\uDCCD ALAMAT DROP POINT / DROP POINT ADDRESS</div><div id='dp-addr-text' style='font-size:13px;color:#F0EBE0;line-height:1.5;margin-bottom:9px'>" + dpAddr + "</div><button class='btn btn-dark' style='margin:0;padding:9px;font-size:12px' onclick='SALINALAMAT()'>\uD83D\uDCCB Salin Alamat / Copy Address</button></div>";
     }
   } else if (o.status === "pending") {
     dropH = "<div style='background:rgba(212,160,23,.07);border:1px solid rgba(212,160,23,.2);border-radius:11px;padding:13px;margin-bottom:11px'><div style='font-size:9px;font-weight:700;letter-spacing:1.5px;color:#D4A017;margin-bottom:6px'>\u23F3 MENUNGGU PERSETUJUAN ADMIN</div><div style='font-size:12px;color:#C8C0B0;line-height:1.5'>Alamat drop point akan muncul di sini setelah order kamu disetujui admin.</div></div>";
@@ -1018,6 +1158,7 @@ function RTRACK(o, el) {
     + (o.statusNote ? "<div style='background:rgba(74,159,212,.07);border:1px solid rgba(74,159,212,.15);border-radius:9px;padding:10px;font-size:12px;margin-bottom:11px'><strong style='color:#4A9FD4'>Info Admin:</strong> " + o.statusNote + "</div>" : "")
     + (o.waGroupLink ? "<div style='background:rgba(7,94,84,.12);border:1.5px solid rgba(37,211,102,.35);border-radius:12px;padding:13px;margin-bottom:11px'><div style='font-size:10px;font-weight:800;color:#25D366;letter-spacing:.5px;margin-bottom:5px'>\uD83D\uDCAC GRUP WHATSAPP TRIP \u2014 WAJIB / MANDATORY</div><div style='font-size:11px;color:#C8C0B0;line-height:1.5;margin-bottom:9px'>Semua info pengambilan, jadwal &amp; update ada di grup ini. Wajib bergabung!<br><span style='color:#888'>All pickup info, schedule &amp; updates are here. You must join!</span></div><button class='btn btn-wa' style='margin:0' onclick=\"window.open('" + o.waGroupLink + "','_blank')\">\uD83D\uDCAC Join Grup WhatsApp Trip</button></div>" : (isApproved ? "<div style='background:rgba(212,160,23,.07);border:1px solid rgba(212,160,23,.2);border-radius:11px;padding:12px;margin-bottom:11px'><div style='font-size:10px;font-weight:700;color:#D4A017;margin-bottom:4px'>\uD83D\uDCAC GRUP WHATSAPP</div><div style='font-size:11px;color:#C8C0B0;line-height:1.5'>Link grup WhatsApp trip akan segera diberikan admin. Wajib bergabung untuk info pengambilan barang.<br><span style='color:#888'>WA group link coming soon. Mandatory for pickup info.</span></div></div>" : ""))
     + phH
+    + "<div id='tanpa-nama-box'></div>"
     + (isCancelled ? "" : "<div class='divider'></div><div class='tl-ttl'>Perjalanan Barang</div><div class='tl'>" + tl + "</div>" + maklumatH)
     + invH + addH
     + (o.status==="delivered" ? ratingH : "")
@@ -1027,6 +1168,34 @@ function RTRACK(o, el) {
     + (canCan ? "<button class='btn btn-red' onclick='BATAL(\"" + (o.code||o.id) + "\")'>\u274C Ajukan Pembatalan Order</button>" : "")
     + "<button class='btn btn-wa' onclick=\"WA('Halo Admin M.M Baggage, saya tanya tentang order " + (o.code||o.id) + "')\">\uD83D\uDCAC Hubungi Admin</button>"
     + "</div></div>";
+
+  // Muat foto "Paket Tanpa Nama" dari trip ini (foto yang nama-nya disensor/tidak cocok)
+  // Semua customer di trip yang sama bisa lihat & download
+  if (o.tripId && !isCancelled) {
+    fsList("trips", function(docs){
+      if (!docs) return;
+      var trip = null;
+      for (var ti=0; ti<docs.length; ti++) {
+        var td = fromFS(docs[ti].fields);
+        if (td.id === o.tripId) { trip = td; break; }
+      }
+      var box = E("tanpa-nama-box");
+      if (!box || !trip || !trip.unknownPhotos || !trip.unknownPhotos.length) return;
+      var h = "<div style='margin:11px 0'><div class='id-ttl'>\uD83D\uDCE6 Paket Tanpa Nama / Unlabeled Packages</div>"
+        + "<div style='font-size:11px;color:#888;margin-bottom:8px;line-height:1.5'>Foto paket yang namanya tidak tercantum/disensor. Cek apakah ada barangmu di sini.<br><span style='color:#666'>Photos of packages without clear names. Check if yours is here.</span></div>"
+        + "<div class='pgrid'>";
+      for (var pi=0; pi<trip.unknownPhotos.length; pi++) {
+        var up = trip.unknownPhotos[pi];
+        if (up.mediaType === "video") {
+          h += "<div class='pi'><video src='" + up.url + "' controls playsinline style='width:100%;aspect-ratio:4/3;object-fit:cover;display:block'></video><div class='pi-cap'>\uD83C\uDFAC <span onclick='DLFOTO(\"" + up.url + "\",\"tanpanama_" + pi + "\")' style='color:#C9A84C;cursor:pointer;font-weight:700'>\u2B07\uFE0F</span></div></div>";
+        } else {
+          h += "<div class='pi'><img src='" + up.url + "' loading='lazy' alt='Paket tanpa nama'><div class='pi-cap'><span onclick='DLFOTO(\"" + up.url + "\",\"tanpanama_" + pi + "\")' style='color:#C9A84C;cursor:pointer;font-weight:700'>\u2B07\uFE0F Download</span></div></div>";
+        }
+      }
+      h += "</div></div>";
+      box.innerHTML = h;
+    });
+  }
 }
 function ATRK(oid,code,route) { addItms.push({cat:"",qty:"",desc:"",type:"kg"}); RADD(oid,code,route); }
 function RADD(oid,code,route) {
