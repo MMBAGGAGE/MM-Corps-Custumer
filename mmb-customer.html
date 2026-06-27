@@ -164,6 +164,11 @@ html,body{height:100%;background:#0A0A0A;color:#F5F0E8;font-family:-apple-system
 .dot{width:7px;height:7px;border-radius:50%;background:#8B6914;animation:blink 1.2s infinite}
 .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
 @keyframes blink{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
+.tut-step{display:flex;gap:12px;margin-bottom:12px;background:#111;border:1px solid #1E1E1E;border-radius:12px;padding:13px}
+.tut-num{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#8B6914,#C9A84C);color:#0A0A0A;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tut-body{flex:1}
+.tut-title{font-size:14px;font-weight:700;color:#F0EBE0;margin-bottom:3px}
+.tut-desc{font-size:12px;color:#C8C0B0;line-height:1.6}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(70px);background:#1A1A1A;color:#F0EBE0;border:1px solid #333;padding:10px 18px;border-radius:24px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:all .25s;white-space:nowrap;pointer-events:none;max-width:86vw;text-align:center}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .toast.ok{background:linear-gradient(135deg,#0A2A16,#1D5C34);color:#fff}
@@ -191,12 +196,43 @@ html,body{height:100%;background:#0A0A0A;color:#F5F0E8;font-family:-apple-system
   <div class="svcs">
     <div class="svcs-lbl">Our Services</div>
     <div class="card" onclick="P('tnc')"><div class="ci ci-g">&#128203;</div><div class="card-body"><div class="card-badge">&#9888;&#65039; Wajib Baca</div><div class="card-title">Syarat &amp; Ketentuan</div><div class="card-sub">Baca sebelum memesan / Read before ordering</div></div><div class="card-arr">&#8250;</div></div>
+    <div class="card" onclick="P('tutorial')"><div class="ci ci-p">&#127891;</div><div class="card-body"><div class="card-badge">Mulai di sini / Start here</div><div class="card-title">Cara Pesan &amp; Tutorial</div><div class="card-sub">Panduan lengkap A-Z / Full guide</div></div><div class="card-arr">&#8250;</div></div>
     <div class="card" onclick="P('order')"><div class="ci ci-t">&#128230;</div><div class="card-body"><div class="card-title">Order Pengiriman Bagasi</div><div class="card-sub">Kirim bagasi / Send baggage &middot; Real-time tracking</div></div><div class="card-arr">&#8250;</div></div>
     <div class="card" onclick="P('track')"><div class="ci ci-g">&#128269;</div><div class="card-body"><div class="card-title">Cek Status &amp; Foto Barang</div><div class="card-sub">Lacak &amp; lihat foto / Track &amp; view photos</div></div><div class="card-arr">&#8250;</div></div>
     <div class="card" onclick="P('jadwal')"><div class="ci ci-p">&#128197;</div><div class="card-body"><div class="card-title">Jadwal Trip / Flight Schedule</div><div class="card-sub">Slot &amp; jadwal / Slots &amp; schedule</div></div><div class="card-arr">&#8250;</div></div>
     <div class="card" onclick="P('tiket')"><div class="ci ci-g">&#9992;&#65039;</div><div class="card-body"><div class="card-badge">New</div><div class="card-title">Tiket Pesawat Internasional</div><div class="card-sub">Tiket pesawat / Flight tickets</div></div><div class="card-arr">&#8250;</div></div>
     <div class="card" onclick="P('visa')"><div class="ci ci-p">&#128499;</div><div class="card-body"><div class="card-badge">New</div><div class="card-title">Visa VOA Mesir</div><div class="card-sub">Visa VOA Mesir / Egypt VOA Visa</div></div><div class="card-arr">&#8250;</div></div>
     <div class="card" onclick="WA('Halo Admin M.M Baggage')"><div class="ci ci-w">&#128172;</div><div class="card-body"><div class="card-title">Hubungi Admin Bagasi</div><div class="card-sub">Chat admin &middot; Fast response</div></div><div class="card-arr">&#8250;</div></div>
+  </div>
+</div>
+<div id="p-tutorial" class="page">
+  <div class="hdr"><div class="back" onclick="P('home')">&#8592;</div><div class="hdr-title">Cara Pesan / How to Order</div></div>
+  <div class="bdy">
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-size:34px;margin-bottom:6px">&#127891;</div>
+      <div style="font-size:17px;font-weight:800">Panduan Lengkap</div>
+      <div style="font-size:12px;color:#666">Dari pesan sampai barang diterima<br><span style="color:#555">From order to delivery</span></div>
+    </div>
+
+    <div style="background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.3);border-radius:13px;padding:15px;margin-bottom:20px">
+      <div style="font-size:13px;font-weight:800;color:#E8924A;margin-bottom:8px">&#128276; WAJIB MASUK GRUP WHATSAPP / MUST JOIN WA GROUP</div>
+      <div style="font-size:12px;color:#C8C0B0;line-height:1.7">Setiap customer <strong>WAJIB</strong> bergabung ke grup WhatsApp trip setelah order disetujui. Semua info penting &mdash; <strong>jadwal pengambilan barang, waktu, lokasi, dan update lainnya</strong> &mdash; hanya diumumkan di grup tersebut.<br><br><span style="color:#888">Every customer MUST join the trip WhatsApp group after approval. All key info &mdash; pickup schedule, time, location, and updates &mdash; is announced only in that group.</span><br><br><span style="color:#E8924A;font-weight:700">&#9888;&#65039; Link grup muncul di halaman Cek Status setelah order disetujui admin.</span></div>
+    </div>
+
+    <div class="tl-ttl" style="margin-bottom:12px">Langkah-langkah / Steps</div>
+
+    <div class="tut-step"><div class="tut-num">1</div><div class="tut-body"><div class="tut-title">Baca Syarat &amp; Ketentuan</div><div class="tut-desc">Pahami aturan, barang terlarang, dan biaya. <span style="color:#666">Read terms, prohibited items &amp; fees.</span></div></div></div>
+    <div class="tut-step"><div class="tut-num">2</div><div class="tut-body"><div class="tut-title">Isi Form Order</div><div class="tut-desc">Data diri, penerima, pilih jadwal trip, dan daftar barang. Nomor WA wajib pakai kode negara (+62/+20). <span style="color:#666">Fill sender, receiver, schedule &amp; items.</span></div></div></div>
+    <div class="tut-step"><div class="tut-num">3</div><div class="tut-body"><div class="tut-title">Simpan Kode Resi</div><div class="tut-desc">Setelah order, kamu dapat <strong>kode resi</strong> (cth: MMB27062600001). <strong>Screenshot / simpan!</strong> Wajib untuk cek status. <span style="color:#666">Save your tracking code!</span></div></div></div>
+    <div class="tut-step"><div class="tut-num">4</div><div class="tut-body"><div class="tut-title">Konfirmasi ke Admin</div><div class="tut-desc">Tekan tombol konfirmasi WhatsApp agar admin memproses ordermu. <span style="color:#666">Confirm via WhatsApp.</span></div></div></div>
+    <div class="tut-step"><div class="tut-num">5</div><div class="tut-body"><div class="tut-title">Tunggu Persetujuan Admin</div><div class="tut-desc">Admin cek &amp; setujui order. Status berubah jadi &quot;Order Disetujui Admin&quot;. <span style="color:#666">Wait for admin approval.</span></div></div></div>
+    <div class="tut-step"><div class="tut-num">6</div><div class="tut-body"><div class="tut-title">Masuk Grup WhatsApp Trip</div><div class="tut-desc"><strong>WAJIB!</strong> Link grup muncul di halaman Cek Status. Semua info pengambilan ada di sini. <span style="color:#666">MUST join the WA group for pickup info.</span></div></div></div>
+    <div class="tut-step"><div class="tut-num">7</div><div class="tut-body"><div class="tut-title">Antar Barang ke Drop Point</div><div class="tut-desc">Alamat drop point muncul setelah disetujui. Antar barang sebelum batas waktu (H-2 / H-1). <span style="color:#666">Deliver to drop point before cutoff.</span></div></div></div>
+    <div class="tut-step"><div class="tut-num">8</div><div class="tut-body"><div class="tut-title">Pantau Status &amp; Foto</div><div class="tut-desc">Cek status barang real-time + foto/video unboxing dari kurir di halaman Cek Status. <span style="color:#666">Track status + photos/videos.</span></div></div></div>
+    <div class="tut-step"><div class="tut-num">9</div><div class="tut-body"><div class="tut-title">Barang Tiba &amp; Pengambilan</div><div class="tut-desc">Setelah tiba di Cairo, <strong>info pengambilan diumumkan di grup WhatsApp</strong>. Ikuti instruksi admin. <span style="color:#666">Pickup info announced in WA group.</span></div></div></div>
+
+    <button class="btn btn-gold" style="margin-top:20px" onclick="P('order')">&#128230; Mulai Order Sekarang / Start Now &#8594;</button>
+    <button class="btn btn-dark" onclick="P('tnc')">&#128203; Baca S&amp;K Dulu / Read Terms</button>
   </div>
 </div>
 <div id="p-tnc" class="page">
@@ -258,7 +294,7 @@ html,body{height:100%;background:#0A0A0A;color:#F5F0E8;font-family:-apple-system
     <div class="conf-icon">&#9989;</div>
     <h2 style="font-size:22px;font-weight:900;margin-bottom:6px">Order Terkirim!</h2>
     <p style="font-size:13px;color:#555;line-height:1.6;margin-bottom:18px">Order sudah masuk. Admin akan menghubungi kamu via WhatsApp.</p>
-    <div class="code-box"><div class="code-lbl">Kode Order Kamu</div><div class="code-val" id="c-code">MMB-0000</div><div class="code-hint">Simpan kode ini untuk tracking</div></div>
+    <div class="code-box" style="border:2px solid #C9A84C;background:linear-gradient(135deg,#1A1410,#0D0D0D)"><div class="code-lbl">⭐ KODE RESI / TRACKING CODE</div><div class="code-val" id="c-code" style="font-size:30px">MMB-0000</div><div style="background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.3);border-radius:9px;padding:10px;margin-top:12px"><div style="font-size:12px;font-weight:800;color:#E8924A;margin-bottom:4px">⚠️ WAJIB DISIMPAN / MUST SAVE</div><div style="font-size:11px;color:#C8C0B0;line-height:1.6">Screenshot atau catat kode ini! Kamu <strong>wajib</strong> punya kode ini untuk cek status barang, terutama saat H-1 keberangkatan.<br><span style="color:#888">Screenshot or note this code! You need it to track your items, especially at H-1 before departure.</span></div></div><button class="btn btn-dark" style="margin-top:10px" onclick="SALINKODE()"> Salin Kode / Copy Code</button></div>
     <div id="c-detail"></div>
     <button class="btn btn-wa" onclick="KONFWA()">&#128172; Konfirmasi ke Admin via WhatsApp</button>
     <button class="btn btn-dark" onclick="P('track')">&#128269; Cek Status Order</button>
@@ -605,6 +641,22 @@ function SEL(id) {
   }
 }
 
+// ── SEQUENCE COUNTER (for order code) ────────
+function getNextSeq(cb) {
+  // Read counter doc, increment, write back. Fallback to timestamp-based if fails.
+  fsGet("settings/counter", function(d){
+    var cur = 0;
+    if (d && d.fields && d.fields.orderSeq) {
+      cur = fromFSVal(d.fields.orderSeq) || 0;
+    }
+    var next = cur + 1;
+    fsPatch("settings/counter", {orderSeq: next}, function(){
+      cb(next);
+    });
+    // If patch is slow, we still return next optimistically via the callback above
+  });
+}
+
 // ── SUBMIT ───────────────────────────────────
 function SUB() {
   var btn = E("sub-btn");
@@ -651,13 +703,20 @@ function SUB() {
     createdAt:now
   });
   btn.disabled = true; btn.textContent = "\u23F3 Mengirim...";
-  fsAdd("orders", ord, function(res){
+  // Generate sequential code: MMB + DDMMYY + 5-digit running number
+  getNextSeq(function(seq){
+    var d = new Date();
+    var dd = ("0"+d.getDate()).slice(-2);
+    var mm = ("0"+(d.getMonth()+1)).slice(-2);
+    var yy = (""+d.getFullYear()).slice(-2);
+    var code = "MMB" + dd + mm + yy + ("00000"+seq).slice(-5);
+    ord.code = code;
+    fsAdd("orders", ord, function(res){
     if (!res || !res.name) {
       btn.disabled = false; btn.textContent = "\uD83D\uDCE6 Kirim Order \u2192";
       toast("Gagal kirim. Cek koneksi & coba lagi.","err"); return;
     }
     var docId = res.name.split("/").pop();
-    var code = "MMB-" + docId.slice(-4).toUpperCase();
     fsPatch("orders/"+docId, {code:code}, function(){
       lastOrd = Object.assign({}, ord, {code:code, id:docId});
       E("c-code").textContent = code;
@@ -670,6 +729,7 @@ function SUB() {
       P("confirm");
       btn.disabled = false; btn.textContent = "\uD83D\uDCE6 Kirim Order \u2192";
     });
+    });
   });
 }
 function KONFWA() {
@@ -679,9 +739,28 @@ function KONFWA() {
   WA("Halo Admin M.M Baggage! \uD83D\uDC4B\n\n*ORDER BARU*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\uD83D\uDCCB Kode    : *" + o.code + "*\n\uD83D\uDC64 Pengirim: " + o.name + "\n\uD83D\uDCF1 WA      : " + o.phone + "\n\uD83D\uDDFA\uFE0F Rute    : " + o.route + "\n\u2708\uFE0F Trip     : " + o.tripId + "\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\uD83D\uDCE6 Barang:\n" + lines + "\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\uD83D\uDCB0 Est. Total: " + rp(o.totalEst) + "\n" + (o.note?"\uD83D\uDCDD Catatan: "+o.note+"\n":"") + "\nMohon dikonfirmasi. Terima kasih \uD83D\uDE4F");
 }
 
+// ── COPY CODE ────────────────────────────────
+function SALINKODE() {
+  var code = lastOrd ? lastOrd.code : (E("c-code") ? E("c-code").textContent : "");
+  if (!code) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(function(){ toast("Kode disalin! / Copied: " + code, "ok"); }).catch(function(){ _fallbackCopy(code); });
+  } else { _fallbackCopy(code); }
+}
+function _fallbackCopy(code) {
+  try {
+    var ta = document.createElement("textarea");
+    ta.value = code; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    document.execCommand("copy"); document.body.removeChild(ta);
+    toast("Kode disalin! / Copied: " + code, "ok");
+  } catch(e) { toast("Salin manual: " + code, "info"); }
+}
+
 // ── TRACKING ─────────────────────────────────
 var STEPS = [
-  {k:"pending",l:"Pesanan Diterima Admin",e:"\u2705"},
+  {k:"pending",l:"Pesanan Masuk",e:"\uD83D\uDCDD"},
+  {k:"approved",l:"Order Disetujui Admin",e:"\u2705"},
   {k:"received",l:"Barang Diterima di Jakarta",e:"\uD83D\uDCE6"},
   {k:"transit",l:"Dalam Perjalanan ke Cairo",e:"\u2708\uFE0F"},
   {k:"arrived",l:"Barang Tiba di Cairo",e:"\uD83D\uDEEC"},
@@ -689,6 +768,7 @@ var STEPS = [
 ];
 var STC = {
   pending:{bg:"rgba(212,160,23,.1)",c:"#D4A017"},
+  approved:{bg:"rgba(45,122,79,.1)",c:"#4CAF7D"},
   received:{bg:"rgba(74,159,212,.1)",c:"#4A9FD4"},
   transit:{bg:"rgba(232,146,74,.1)",c:"#E8924A"},
   arrived:{bg:"rgba(45,122,79,.1)",c:"#4CAF7D"},
@@ -739,10 +819,14 @@ function RTRACK(o, el) {
   }
   var phH = "";
   if (o.photos && o.photos.length) {
-    phH = "<div style='margin-bottom:11px'><div class='id-ttl'>\uD83D\uDCF8 Foto Barang</div><div class='pgrid'>";
+    phH = "<div style='margin-bottom:11px'><div class='id-ttl'>\uD83D\uDCF8 Foto & Video Barang / Photos & Videos</div><div class='pgrid'>";
     for (var i=0;i<o.photos.length;i++) {
       var p = o.photos[i];
-      phH += "<div class='pi'><img src='" + p.url + "' loading='lazy' alt='Foto barang' onerror=\"this.parentElement.style.display='none'\"><div class='pi-cap'>" + (p.ownerName||"") + "</div></div>";
+      if (p.mediaType === "video") {
+        phH += "<div class='pi'><video src='" + p.url + "' controls playsinline style='width:100%;aspect-ratio:4/3;object-fit:cover;display:block' onerror=\"this.parentElement.style.display='none'\"></video><div class='pi-cap'>\uD83C\uDFAC " + (p.ownerName||"") + "</div></div>";
+      } else {
+        phH += "<div class='pi'><img src='" + p.url + "' loading='lazy' alt='Foto barang' onerror=\"this.parentElement.style.display='none'\"><div class='pi-cap'>" + (p.ownerName||"") + "</div></div>";
+      }
     }
     phH += "</div></div>";
   }
@@ -766,7 +850,7 @@ function RTRACK(o, el) {
   if (canCan && o.tripDate) { var df = Math.ceil((new Date(o.tripDate+"T00:00:00")-new Date())/864e5); canCan = df>=4; }
   // Maklumat: status "Barang Diterima di Jakarta" diupdate H-1
   var maklumatH = "";
-  if (o.status === "pending") {
+  if (o.status === "pending" || o.status === "approved") {
     maklumatH = "<div style='background:rgba(74,159,212,.07);border:1px solid rgba(74,159,212,.2);border-radius:11px;padding:13px;margin-top:11px'><div style='font-size:9px;font-weight:700;letter-spacing:1px;color:#4A9FD4;margin-bottom:6px'>\u2139\uFE0F MAKLUMAT</div><div style='font-size:12px;color:#C8C0B0;line-height:1.6'>Status <strong>\"Barang Diterima di Jakarta\"</strong> akan diupdate oleh admin pada <strong>H-1 sebelum penerbangan</strong>. Hal ini karena banyaknya barang yang masuk dalam satu trip, sehingga pendataan & foto barang dilakukan sekaligus menjelang keberangkatan. Mohon ditunggu \uD83D\uDE4F</div></div>";
   }
   // Drop point: only show AFTER admin approves (status past pending, not cancelled)
@@ -793,12 +877,12 @@ function RTRACK(o, el) {
     + "<div class='dg-item'><label>Status Bayar</label><span>" + (o.payStatus==="lunas"?"\u2705 Lunas":o.payStatus==="dp"?"\uD83D\uDD36 DP":"\u23F3 Belum") + "</span></div>"
     + "</div>"
     + (o.statusNote ? "<div style='background:rgba(74,159,212,.07);border:1px solid rgba(74,159,212,.15);border-radius:9px;padding:10px;font-size:12px;margin-bottom:11px'><strong style='color:#4A9FD4'>Info Admin:</strong> " + o.statusNote + "</div>" : "")
-    + (o.waGroupLink ? "<div style='background:rgba(7,94,84,.1);border:1px solid rgba(37,211,102,.15);border-radius:11px;padding:11px;margin-bottom:11px'><div style='font-size:9px;font-weight:700;color:#25D366;letter-spacing:1px;margin-bottom:5px'>\uD83D\uDCAC GRUP WHATSAPP TRIP</div><button class='btn btn-wa' style='margin:0' onclick=\"window.open('" + o.waGroupLink + "','_blank')\">\uD83D\uDCAC Join Grup WhatsApp Trip</button></div>" : "")
+    + (o.waGroupLink ? "<div style='background:rgba(7,94,84,.12);border:1.5px solid rgba(37,211,102,.35);border-radius:12px;padding:13px;margin-bottom:11px'><div style='font-size:10px;font-weight:800;color:#25D366;letter-spacing:.5px;margin-bottom:5px'>\uD83D\uDCAC GRUP WHATSAPP TRIP \u2014 WAJIB / MANDATORY</div><div style='font-size:11px;color:#C8C0B0;line-height:1.5;margin-bottom:9px'>Semua info pengambilan, jadwal &amp; update ada di grup ini. Wajib bergabung!<br><span style='color:#888'>All pickup info, schedule &amp; updates are here. You must join!</span></div><button class='btn btn-wa' style='margin:0' onclick=\"window.open('" + o.waGroupLink + "','_blank')\">\uD83D\uDCAC Join Grup WhatsApp Trip</button></div>" : (isApproved ? "<div style='background:rgba(212,160,23,.07);border:1px solid rgba(212,160,23,.2);border-radius:11px;padding:12px;margin-bottom:11px'><div style='font-size:10px;font-weight:700;color:#D4A017;margin-bottom:4px'>\uD83D\uDCAC GRUP WHATSAPP</div><div style='font-size:11px;color:#C8C0B0;line-height:1.5'>Link grup WhatsApp trip akan segera diberikan admin. Wajib bergabung untuk info pengambilan barang.<br><span style='color:#888'>WA group link coming soon. Mandatory for pickup info.</span></div></div>" : ""))
     + phH
     + (isCancelled ? "" : "<div class='divider'></div><div class='tl-ttl'>Perjalanan Barang</div><div class='tl'>" + tl + "</div>" + maklumatH)
     + invH + addH
     + "<div class='divider'></div>"
-    + ((o.status==="pending") ? "<button class='btn btn-dark' onclick='UBAHTRIP(\"" + (o.id||"") + "\",\"" + (o.code||"") + "\",\"" + (o.route||"") + "\",\"" + (o.tripId||"") + "\")'>\u270F\uFE0F Ubah Jadwal Penerbangan / Change Flight</button>" : "")
+    + ((o.status==="pending"||o.status==="approved") ? "<button class='btn btn-dark' onclick='UBAHTRIP(\"" + (o.id||"") + "\",\"" + (o.code||"") + "\",\"" + (o.route||"") + "\",\"" + (o.tripId||"") + "\")'>\u270F\uFE0F Ubah Jadwal Penerbangan / Change Flight</button>" : "")
     + (canCan ? "<button class='btn btn-red' onclick='BATAL(\"" + (o.code||o.id) + "\")'>\u274C Ajukan Pembatalan Order</button>" : "")
     + "<button class='btn btn-wa' onclick=\"WA('Halo Admin M.M Baggage, saya tanya tentang order " + (o.code||o.id) + "')\">\uD83D\uDCAC Hubungi Admin</button>"
     + "</div></div>";
