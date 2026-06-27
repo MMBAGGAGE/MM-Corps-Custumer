@@ -304,7 +304,7 @@ html,body{height:100%;background:#0A0A0A;color:#F5F0E8;font-family:-apple-system
 <div id="p-track" class="page">
   <div class="hdr"><div class="back" onclick="P('home')">&#8592;</div><div class="hdr-title">Cek Status Barang</div></div>
   <div class="bdy">
-    <div class="search-box"><input type="text" id="t-input" placeholder="KODE ORDER / CODE (MMB-XXXX)" maxlength="12" oninput="this.value=this.value.toUpperCase()"><button class="search-btn" onclick="TRACK()">Cari</button></div>
+    <div class="search-box"><input type="text" id="t-input" placeholder="KODE ORDER / CODE (cth MMB27062600001)" maxlength="20" oninput="this.value=this.value.toUpperCase()"><button class="search-btn" onclick="TRACK()">Cari</button></div>
     <div id="t-result"><div class="empty">Masukkan kode order / Enter your order code.</div></div>
   </div>
 </div>
@@ -776,9 +776,12 @@ var STC = {
   cancelled:{bg:"rgba(192,57,43,.1)",c:"#C0392B"}
 };
 function TRACK() {
-  var code = (V("t-input")||"").trim().toUpperCase();
+  // Bersihkan: hapus spasi & karakter aneh dari paste, uppercase. Dukung kode panjang berapapun.
+  var code = (V("t-input")||"").toUpperCase().replace(/[^A-Z0-9\-]/g,"");
   var el = E("t-result");
-  if (!code || code.length<4) { toast("Masukkan kode order","err"); return; }
+  if (!code || code.length<4) { toast("Masukkan kode order / Enter order code","err"); return; }
+  // Sinkronkan input dengan versi bersih supaya user lihat kode yang dipakai
+  if (E("t-input")) E("t-input").value = code;
   el.innerHTML = "<div class='loader'><div class='dot'></div><div class='dot'></div><div class='dot'></div></div>";
   fsQuery("orders", "code", code, function(docs){
     if (!docs || !docs.length) {
