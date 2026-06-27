@@ -262,8 +262,9 @@ html,body{height:100%;background:#0A0A0A;color:#F5F0E8;font-family:-apple-system
       <div class="fld"><label>Jasa Ekspedisi / Courier *</label><select id="f-eksp"><option value="">-- Pilih ekspedisi --</option><option>JNE</option><option>J&amp;T Express</option><option>SiCepat</option><option>Anteraja</option><option>Pos Indonesia</option><option>Ninja Xpress</option><option>Lainnya</option></select></div>
     </div>
     <div id="rcv-jc" class="sec" style="display:none"><div class="sec-lbl">Penerima di Cairo / Receiver in Cairo</div>
-      <div class="fld"><label>Nama Penerima di Cairo *</label><input type="text" id="f-rcvcairo" placeholder="Sesuai petunjuk admin"></div>
-      <div class="fld"><label>No. WA Penerima</label><input type="tel" id="f-rcvcairotel" placeholder="+20..." inputmode="numeric"></div>
+      <div style="background:rgba(74,159,212,.07);border:1px solid rgba(74,159,212,.2);border-radius:10px;padding:11px;margin-bottom:12px"><div style="font-size:11px;color:#C8C0B0;line-height:1.6">&#8505;&#65039; Jika <strong>pemesan dan penerima di Cairo adalah orang yang sama</strong>, isi dengan data yang sama.<br><span style="color:#888">If sender and Cairo receiver are the same person, fill in the same details.</span></div></div>
+      <div class="fld"><label>Nama Penerima di Cairo / Cairo Receiver Name *</label><input type="text" id="f-rcvcairo" placeholder="Sesuai petunjuk admin / As per admin"></div>
+      <div class="fld"><label>No. WA Penerima Cairo / Cairo Receiver WhatsApp *</label><input type="tel" id="f-rcvcairotel" placeholder="cth: 201234567890 (wajib kode negara)" inputmode="numeric"></div>
       <div class="fld"><label>Domisili di Cairo *</label><select id="f-dom"><option value="">-- Pilih area --</option><option>Darrasah</option><option>Hay Asyir (Nasr City)</option><option>Hay Sabi (Ain Shams)</option><option>Madinat Nasr</option><option>Heliopolis</option><option>Mohandessin</option><option>Zamalek</option><option>Lainnya</option></select></div>
       <div class="fld"><label>Alamat Detail</label><textarea id="f-cairodet" placeholder="Nomor apartemen, nama gedung, dll..."></textarea></div>
     </div>
@@ -283,6 +284,8 @@ html,body{height:100%;background:#0A0A0A;color:#F5F0E8;font-family:-apple-system
     <div class="sec"><div class="sec-lbl">Info Tambahan / Additional Info</div>
       <div class="fld"><label>Catatan / Notes</label><textarea id="f-note" placeholder="Barang fragile, info tambahan..."></textarea></div>
       <div class="fld"><label>Bukti Transfer / DP</label><input type="text" id="f-tf" placeholder="Link foto atau ketik belum bayar"></div>
+      <div class="fld"><label>Kode Referral / Referral Code (opsional)</label><input type="text" id="f-ref" placeholder="Punya kode referral? Isi di sini" oninput="this.value=this.value.toUpperCase()" maxlength="20"><div class="hint">Punya kode dari teman/influencer? Dapat diskon! / Got a code? Get a discount!</div><div id="ref-status" style="margin-top:6px"></div></div>
+      <button class="btn-dark" style="padding:10px;font-size:12px;margin-top:0" onclick="CEKREF()">✓ Cek Kode Referral / Check Code</button>
     </div>
     <div class="warn2"><div style="font-size:11px;font-weight:700;color:#C0392B;margin-bottom:3px">&#9888;&#65039; Perhatian</div><div style="font-size:12px;color:#C0392B;line-height:1.5">Dengan menekan Order, kamu menyetujui Syarat &amp; Ketentuan M.M Baggage.</div></div>
     <button class="btn btn-gold" id="sub-btn" onclick="SUB()">&#128230; Kirim Order / Submit &#8594;</button>
@@ -354,16 +357,22 @@ var trips = [];
 var lastOrd = null;
 var addItms = [];
 var TOKEN = "";
+var activeRef = null; // {code, discountPerKg, commissionPerKg, ownerName}
 
 // ── AUTH TOKEN for REST ──────────────────────
-function getToken(cb) {
+function getToken(cb, _retry) {
   if (TOKEN) { cb(TOKEN); return; }
   fetch("https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + KEY, {
     method:"POST", headers:{"Content-Type":"application/json"},
     body: JSON.stringify({returnSecureToken:true})
   }).then(function(r){ return r.json(); }).then(function(d){
-    TOKEN = d.idToken || ""; cb(TOKEN);
-  }).catch(function(){ cb(""); });
+    TOKEN = d.idToken || "";
+    if (!TOKEN && (_retry||0) < 2) { setTimeout(function(){ getToken(cb, (_retry||0)+1); }, 800); return; }
+    cb(TOKEN);
+  }).catch(function(){
+    if ((_retry||0) < 2) { setTimeout(function(){ getToken(cb, (_retry||0)+1); }, 800); }
+    else cb("");
+  });
 }
 
 // ── FIRESTORE REST (token via Authorization header) ──
@@ -468,6 +477,14 @@ function rate(k, q) {
   var b = (CFG.rates && CFG.rates[k]) || DRATES[k] || 150000;
   try { if (CFG.bulkActive && CFG.bulkActive[k] && CFG.bulkMin && CFG.bulkRates && parseFloat(q||0) >= (CFG.bulkMin[k]||0)) return CFG.bulkRates[k]; } catch(e){}
   return b;
+}
+function valPhone(raw) {
+  // Returns cleaned digits if valid (has country code +20/+62 or starts with these), else null
+  var p = (raw||"").trim().replace(/[^0-9+]/g,"");
+  if (!p) return null;
+  var digits = p.replace(/\D/g,"");
+  var hasCC = p.charAt(0)==="+" || digits.indexOf("20")===0 || digits.indexOf("62")===0;
+  return hasCC ? digits : null;
 }
 function esc(s) { return (s||"").replace(/'/g,"&#39;").replace(/"/g,"&quot;"); }
 
@@ -580,16 +597,26 @@ function UD(i,v){ items[i].desc=v; }
 function UQ(i,v){ items[i].qty=v; items[i].rate=rate(items[i].cat,v); CALC(); }
 function UR(i,v){ items[i].rate=parseFloat(v)||0; CALC(); }
 function CALC() {
-  var tot=0, lines=[];
+  var tot=0, lines=[], totalQty=0;
   for (var i=0;i<items.length;i++) {
     var it=items[i];
     var q=parseFloat(it.qty||0)||0;
     var r=parseFloat(it.rate||0)||rate(it.cat,it.qty)||0;
     tot += q*r;
+    totalQty += q;
     if (it.cat && it.qty) lines.push(it.cat+": "+it.qty+" "+(it.type||"kg")+" \u00D7 "+rp(r));
   }
+  var disc = 0;
+  if (activeRef && activeRef.discountPerKg > 0) {
+    disc = activeRef.discountPerKg * totalQty;
+    if (disc > tot) disc = tot; // cap
+  }
+  var finalTot = tot - disc;
+  if (disc > 0) {
+    lines.push("<span style='color:#4CAF7D'>Diskon referral ("+activeRef.code+"): -"+rp(disc)+"</span>");
+  }
   S("p-lines", lines.length ? lines.join("<br>") : "Isi barang di atas");
-  S("p-total", rp(tot));
+  S("p-total", rp(finalTot));
 }
 
 // ── TRIPS ────────────────────────────────────
@@ -641,6 +668,34 @@ function SEL(id) {
   }
 }
 
+// ── REFERRAL ─────────────────────────────────
+function CEKREF() {
+  var codeRaw = (V("f-ref")||"").trim().toUpperCase().replace(/[^A-Z0-9\-]/g,"");
+  var statusEl = E("ref-status");
+  if (!codeRaw) { activeRef = null; if(statusEl) statusEl.innerHTML = ""; toast("Isi kode referral dulu","err"); return; }
+  if (statusEl) statusEl.innerHTML = "<span style='font-size:11px;color:#888'>Mengecek... / Checking...</span>";
+  fsGet("referrals/" + codeRaw, function(d){
+    if (!d || !d.fields) {
+      activeRef = null;
+      if (statusEl) statusEl.innerHTML = "<span style='font-size:11px;color:#C0392B'>\u274C Kode tidak ditemukan / Code not found</span>";
+      return;
+    }
+    var r = fromFS(d.fields);
+    if (r.active === false) {
+      activeRef = null;
+      if (statusEl) statusEl.innerHTML = "<span style='font-size:11px;color:#C0392B'>\u274C Kode tidak aktif / Code inactive</span>";
+      return;
+    }
+    activeRef = {code:codeRaw, discountPerKg:parseFloat(r.discountPerKg)||0, commissionPerKg:parseFloat(r.commissionPerKg)||0, ownerName:r.ownerName||""};
+    var disc = activeRef.discountPerKg;
+    if (statusEl) {
+      statusEl.innerHTML = "<span style='font-size:11px;color:#4CAF7D;font-weight:700'>\u2705 Kode valid! Diskon " + rp(disc) + "/kg" + (activeRef.ownerName?(" \u2014 "+activeRef.ownerName):"") + "</span>";
+    }
+    toast("Kode referral aktif! Diskon " + rp(disc) + "/kg \u2705","ok");
+    CALC(); // recalc with discount
+  });
+}
+
 // ── SEQUENCE COUNTER (for order code) ────────
 function getNextSeq(cb) {
   // Read counter doc, increment, write back. Fallback to timestamp-based if fails.
@@ -677,26 +732,38 @@ function SUB() {
     var rn = (V("f-rcvname")||"").trim();
     var addr = (V("f-addr")||"").trim();
     var eksp = V("f-eksp");
-    if (!rn) return toast("Nama penerima wajib diisi","err");
-    if (!addr) return toast("Alamat tujuan wajib diisi","err");
-    if (!eksp) return toast("Pilih jasa ekspedisi","err");
-    rcv = {rcvName:rn, rcvPhone:(V("f-rcvphone")||"").trim(), address:addr, ekspedisi:eksp};
+    if (!rn) return toast("Nama penerima wajib diisi / Receiver name required","err");
+    if (!addr) return toast("Alamat tujuan wajib diisi / Address required","err");
+    if (!eksp) return toast("Pilih jasa ekspedisi / Select courier","err");
+    var rnPhone = (V("f-rcvphone")||"").trim();
+    if (rnPhone) { var vp = valPhone(rnPhone); if (!vp) return toast("No. WA penerima harus pakai kode negara (+62/+20)","err"); rnPhone = vp; }
+    rcv = {rcvName:rn, rcvPhone:rnPhone, address:addr, ekspedisi:eksp};
   } else {
     var rc = (V("f-rcvcairo")||"").trim();
     var dom = V("f-dom");
-    if (!rc) return toast("Nama penerima Cairo wajib diisi","err");
-    if (!dom) return toast("Pilih domisili di Cairo","err");
-    rcv = {rcvName:rc, rcvPhone:(V("f-rcvcairotel")||"").trim(), domisili:dom, cairoDetail:(V("f-cairodet")||"").trim()};
+    if (!rc) return toast("Nama penerima Cairo wajib diisi / Cairo receiver name required","err");
+    var rcPhone = valPhone(V("f-rcvcairotel"));
+    if (!rcPhone) return toast("No. WA penerima Cairo wajib & pakai kode negara (+20/+62)","err");
+    if (!dom) return toast("Pilih domisili di Cairo / Select Cairo area","err");
+    rcv = {rcvName:rc, rcvPhone:rcPhone, domisili:dom, cairoDetail:(V("f-cairodet")||"").trim()};
   }
   var valid = items.filter(function(it){ return it.cat && it.qty && parseFloat(it.qty)>0 && it.desc; });
   if (!valid.length) return toast("Isi minimal 1 barang (kategori + berat + deskripsi)","err");
   var sTrip = null; for (var i=0;i<trips.length;i++) if (trips[i].id===tripId) { sTrip=trips[i]; break; }
   if (sTrip && sTrip.status!=="open") return toast("Trip ini tidak menerima order baru","err");
-  var tot = valid.reduce(function(s,it){ return s + parseFloat(it.qty||0)*(parseFloat(it.rate||0)||rate(it.cat,it.qty)); }, 0);
+  var totGross = valid.reduce(function(s,it){ return s + parseFloat(it.qty||0)*(parseFloat(it.rate||0)||rate(it.cat,it.qty)); }, 0);
+  var totQty = valid.reduce(function(s,it){ return s + parseFloat(it.qty||0); }, 0);
+  var refDisc = 0, refData = null;
+  if (activeRef && activeRef.discountPerKg > 0) {
+    refDisc = activeRef.discountPerKg * totQty;
+    if (refDisc > totGross) refDisc = totGross;
+    refData = {code:activeRef.code, discountPerKg:activeRef.discountPerKg, commissionPerKg:activeRef.commissionPerKg, ownerName:activeRef.ownerName||"", totalDiscount:refDisc, totalCommission:(activeRef.commissionPerKg||0)*totQty};
+  }
+  var tot = totGross - refDisc;
   var now = new Date().toISOString();
   var ord = Object.assign({name:name,phone:phone,route:rute,tripId:tripId,tripDate:sTrip?sTrip.date:""}, rcv, {
     items: valid.map(function(it){ return {cat:it.cat,type:it.type||"kg",qty:parseFloat(it.qty),rate:parseFloat(it.rate||0)||rate(it.cat,it.qty),desc:it.desc,status:"pending",adminNote:""}; }),
-    totalEst:tot, totalFinal:null,
+    totalEst:tot, totalGross:totGross, referral:refData, totalFinal:null,
     note:(V("f-note")||"").trim(), buktiTransfer:(V("f-tf")||"").trim(),
     status:"pending", payStatus:"belum", waGroupLink:"", photos:[], statusNote:"",
     history:[{status:"pending",ts:Date.now(),note:"Order masuk dari customer"}],
@@ -717,6 +784,15 @@ function SUB() {
       toast("Gagal kirim. Cek koneksi & coba lagi.","err"); return;
     }
     var docId = res.name.split("/").pop();
+    // Note: referral commission is NOT accumulated here (unreliable).
+    // Admin computes accurate commission from actual delivered orders.
+    // We only log a lightweight usage ping for rough marketing visibility.
+    if (refData && refData.code) {
+      fsGet("referrals/"+refData.code, function(rd){
+        var cur = (rd && rd.fields && rd.fields.orderCount) ? (fromFSVal(rd.fields.orderCount)||0) : 0;
+        fsPatch("referrals/"+refData.code, {orderCount:cur+1});
+      });
+    }
     fsPatch("orders/"+docId, {code:code}, function(){
       lastOrd = Object.assign({}, ord, {code:code, id:docId});
       E("c-code").textContent = code;
@@ -737,6 +813,36 @@ function KONFWA() {
   var o = lastOrd;
   var lines = (o.items||[]).map(function(it){ return "\u2022 " + it.cat + ": " + it.qty + " " + (it.type||"kg") + " \u2014 " + it.desc; }).join("\n");
   WA("Halo Admin M.M Baggage! \uD83D\uDC4B\n\n*ORDER BARU*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\uD83D\uDCCB Kode    : *" + o.code + "*\n\uD83D\uDC64 Pengirim: " + o.name + "\n\uD83D\uDCF1 WA      : " + o.phone + "\n\uD83D\uDDFA\uFE0F Rute    : " + o.route + "\n\u2708\uFE0F Trip     : " + o.tripId + "\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\uD83D\uDCE6 Barang:\n" + lines + "\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\uD83D\uDCB0 Est. Total: " + rp(o.totalEst) + "\n" + (o.note?"\uD83D\uDCDD Catatan: "+o.note+"\n":"") + "\nMohon dikonfirmasi. Terima kasih \uD83D\uDE4F");
+}
+
+// ── RATING ───────────────────────────────────
+var _selRating = 0;
+function _starHTML(sel, oid, code) {
+  var h = "";
+  for (var i=1; i<=5; i++) {
+    h += "<span onclick='SETRATING(" + i + ",\"" + oid + "\",\"" + (code||"") + "\")' style='cursor:pointer'>" + (i<=sel ? "\u2B50" : "\u2606") + "</span>";
+  }
+  return h;
+}
+function SETRATING(n, oid, code) {
+  _selRating = n;
+  var row = E("star-row");
+  if (row) row.innerHTML = _starHTML(n, oid, code);
+}
+function KIRIMRATING(oid, code) {
+  if (!_selRating || _selRating < 1) { toast("Pilih bintang dulu / Select stars first","err"); return; }
+  var fb = (V("fb-text")||"").trim();
+  fsPatch("orders/"+oid, {rating:_selRating, feedback:fb, ratedAt:new Date().toISOString()}, function(){
+    // Also save to ratings collection for admin analytics
+    fsAdd("ratings", {orderCode:code, orderId:oid, rating:_selRating, comment:fb, ts:Date.now(), createdAt:new Date().toISOString()}, function(){});
+    toast("Terima kasih atas penilaianmu! \u2B50 / Thank you!","ok");
+    // Also send to admin via WA
+    var stars = "";
+    for (var s=1;s<=_selRating;s++) stars += "\u2B50";
+    WA("Halo Admin M.M Baggage,\n\n*PENILAIAN PELAYANAN*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\uD83D\uDCCB Order: *" + code + "*\n\u2B50 Rating: " + stars + " (" + _selRating + "/5)\n" + (fb?"\uD83D\uDCAC Saran: " + fb + "\n":"") + "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\nTerima kasih \uD83D\uDE07");
+    _selRating = 0;
+    setTimeout(TRACK, 700);
+  });
 }
 
 // ── COPY CODE ────────────────────────────────
@@ -841,7 +947,8 @@ function RTRACK(o, el) {
       invH += "<div class='inv-row'><div style='color:#555'>" + it.cat + " (" + it.qty + " " + (it.type||"kg") + ")</div><div style='font-weight:700;font-family:monospace;font-size:11px'>" + rp(it.total||0) + "</div></div>";
     }
     if (o.cukaiAmount) invH += "<div class='inv-row'><div style='color:#555'>Cukai/Pajak</div><div style='font-weight:700;font-family:monospace;font-size:11px'>" + rp(o.cukaiAmount) + "</div></div>";
-    invH += "<div class='inv-tot'><div style='font-size:13px;font-weight:700'>Total Final</div><div class='inv-tot-val'>" + rp(o.totalFinal) + "</div></div></div>";
+    invH += "<div class='inv-tot'><div style='font-size:13px;font-weight:700'>Total Final</div><div class='inv-tot-val'>" + rp(o.totalFinal) + "</div></div>";
+    invH += "<div style='margin-top:12px;padding-top:12px;border-top:1px solid #1A1A1A;text-align:center;font-size:12px;color:#C9A84C;line-height:1.6;font-style:italic'>Terimakasih sudah mempercayakan pengiriman barang anda kepada kami, sampai jumpa di order selanjutnya \uD83D\uDE07</div></div>";
   }
   addItms = [];
   var canAdd = !(o.status==="delivered" || o.status==="cancelled");
@@ -851,6 +958,18 @@ function RTRACK(o, el) {
   }
   var canCan = !(o.status==="cancelled" || o.status==="delivered");
   if (canCan && o.tripDate) { var df = Math.ceil((new Date(o.tripDate+"T00:00:00")-new Date())/864e5); canCan = df>=4; }
+
+  // Rating section (shown when delivered)
+  var ratingH = "";
+  if (o.status === "delivered") {
+    if (o.rating) {
+      var stars = "";
+      for (var rs=1; rs<=5; rs++) stars += (rs<=o.rating ? "\u2B50" : "\u2606");
+      ratingH = "<div style='background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:12px;padding:14px;margin-top:11px;text-align:center'><div style='font-size:10px;font-weight:700;color:#C9A84C;letter-spacing:1px;margin-bottom:6px'>\u2705 TERIMA KASIH ATAS PENILAIANMU</div><div style='font-size:22px;letter-spacing:3px'>" + stars + "</div>" + (o.feedback?"<div style='font-size:12px;color:#C8C0B0;margin-top:8px;font-style:italic'>\u201C" + o.feedback + "\u201D</div>":"") + "</div>";
+    } else {
+      ratingH = "<div style='background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.25);border-radius:12px;padding:15px;margin-top:11px'><div style='font-size:11px;font-weight:800;color:#C9A84C;margin-bottom:4px;text-align:center'>\u2B50 Beri Penilaian / Rate Us</div><div style='font-size:12px;color:#888;text-align:center;line-height:1.5;margin-bottom:10px'>Bagaimana pelayanan kami? / How was our service?</div><div id='star-row' style='text-align:center;font-size:32px;letter-spacing:6px;margin-bottom:10px'>" + _starHTML(0, o.id, o.code) + "</div><textarea id='fb-text' placeholder='Kritik & saran untuk M.M Baggage... / Feedback...' style='width:100%;background:#0D0D0D;border:1px solid #2A2A2A;border-radius:10px;padding:11px;font-family:inherit;font-size:15px;color:#F0EBE0;outline:none;resize:none;min-height:60px;margin-bottom:10px'></textarea><button class='btn btn-gold' onclick='KIRIMRATING(\"" + o.id + "\",\"" + (o.code||"") + "\")'>\uD83D\uDCE4 Kirim Penilaian / Submit</button></div>";
+    }
+  }
   // Maklumat: status "Barang Diterima di Jakarta" diupdate H-1
   var maklumatH = "";
   if (o.status === "pending" || o.status === "approved") {
@@ -874,17 +993,36 @@ function RTRACK(o, el) {
     + (isCancelled ? "<div style='background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.25);border-radius:11px;padding:13px;margin-bottom:11px'><div style='font-size:11px;font-weight:700;color:#C0392B;margin-bottom:4px'>\u274C ORDER DITOLAK / DIBATALKAN</div><div style='font-size:12px;color:#C8C0B0;line-height:1.5'>" + (o.statusNote || "Order ini ditolak atau dibatalkan. Hubungi admin untuk info lebih lanjut.") + "</div></div>" : "")
     + dropH
     + itH
+    + "<div class='id-wrap' style='margin-bottom:11px'><div class='id-ttl'>\uD83D\uDC64 Data Pengirim & Penerima / Sender & Receiver</div>"
+    + "<div style='font-size:12px;color:#C8C0B0;line-height:1.8'>"
+    + "<div><span style='color:#666'>Pengirim / Sender:</span> <strong>" + (o.name||"-") + "</strong>" + (o.phone?" \u00B7 " + o.phone:"") + "</div>"
+    + "<div><span style='color:#666'>Penerima / Receiver:</span> <strong>" + (o.rcvName||"-") + "</strong>" + (o.rcvPhone?" \u00B7 " + o.rcvPhone:"") + "</div>"
+    + (o.address?"<div><span style='color:#666'>Alamat / Address:</span> " + o.address + "</div>":"")
+    + (o.domisili?"<div><span style='color:#666'>Domisili Cairo:</span> " + o.domisili + "</div>":"")
+    + (o.ekspedisi?"<div><span style='color:#666'>Ekspedisi:</span> " + o.ekspedisi + "</div>":"")
+    + "</div></div>"
+    + "<div class='id-wrap' style='margin-bottom:11px'><div class='id-ttl'>\uD83D\uDC64 Data Pengirim & Penerima / Sender & Receiver</div>"
+    + "<div style='font-size:12px;color:#C8C0B0;line-height:1.8'>"
+    + "<div><span style='color:#777'>Pengirim/Sender:</span> <strong>" + (o.name||"-") + "</strong>" + (o.phone?" \u00B7 "+o.phone:"") + "</div>"
+    + (o.rcvName ? "<div><span style='color:#777'>Penerima/Receiver:</span> <strong>" + o.rcvName + "</strong>" + (o.rcvPhone?" \u00B7 "+o.rcvPhone:"") + "</div>" : "")
+    + (o.address ? "<div><span style='color:#777'>Alamat/Address:</span> " + o.address + "</div>" : "")
+    + (o.domisili ? "<div><span style='color:#777'>Domisili Cairo:</span> " + o.domisili + "</div>" : "")
+    + (o.ekspedisi ? "<div><span style='color:#777'>Ekspedisi:</span> " + o.ekspedisi + "</div>" : "")
+    + "</div></div>"
     + "<div class='dg'>"
     + "<div class='dg-item'><label>Est. Total</label><span class='g'>" + rp(o.totalEst) + "</span></div>"
     + (o.totalFinal!=null ? "<div class='dg-item'><label>Total Final</label><span class='g'>" + rp(o.totalFinal) + "</span></div>" : "")
     + "<div class='dg-item'><label>Status Bayar</label><span>" + (o.payStatus==="lunas"?"\u2705 Lunas":o.payStatus==="dp"?"\uD83D\uDD36 DP":"\u23F3 Belum") + "</span></div>"
+    + (o.referral && o.referral.code ? "<div class='dg-item'><label>Kode Referral</label><span class='g'>" + o.referral.code + "</span></div>" : "")
     + "</div>"
     + (o.statusNote ? "<div style='background:rgba(74,159,212,.07);border:1px solid rgba(74,159,212,.15);border-radius:9px;padding:10px;font-size:12px;margin-bottom:11px'><strong style='color:#4A9FD4'>Info Admin:</strong> " + o.statusNote + "</div>" : "")
     + (o.waGroupLink ? "<div style='background:rgba(7,94,84,.12);border:1.5px solid rgba(37,211,102,.35);border-radius:12px;padding:13px;margin-bottom:11px'><div style='font-size:10px;font-weight:800;color:#25D366;letter-spacing:.5px;margin-bottom:5px'>\uD83D\uDCAC GRUP WHATSAPP TRIP \u2014 WAJIB / MANDATORY</div><div style='font-size:11px;color:#C8C0B0;line-height:1.5;margin-bottom:9px'>Semua info pengambilan, jadwal &amp; update ada di grup ini. Wajib bergabung!<br><span style='color:#888'>All pickup info, schedule &amp; updates are here. You must join!</span></div><button class='btn btn-wa' style='margin:0' onclick=\"window.open('" + o.waGroupLink + "','_blank')\">\uD83D\uDCAC Join Grup WhatsApp Trip</button></div>" : (isApproved ? "<div style='background:rgba(212,160,23,.07);border:1px solid rgba(212,160,23,.2);border-radius:11px;padding:12px;margin-bottom:11px'><div style='font-size:10px;font-weight:700;color:#D4A017;margin-bottom:4px'>\uD83D\uDCAC GRUP WHATSAPP</div><div style='font-size:11px;color:#C8C0B0;line-height:1.5'>Link grup WhatsApp trip akan segera diberikan admin. Wajib bergabung untuk info pengambilan barang.<br><span style='color:#888'>WA group link coming soon. Mandatory for pickup info.</span></div></div>" : ""))
     + phH
     + (isCancelled ? "" : "<div class='divider'></div><div class='tl-ttl'>Perjalanan Barang</div><div class='tl'>" + tl + "</div>" + maklumatH)
     + invH + addH
+    + (o.status==="delivered" ? ratingH : "")
     + "<div class='divider'></div>"
+    + ratingH
     + ((o.status==="pending"||o.status==="approved") ? "<button class='btn btn-dark' onclick='UBAHTRIP(\"" + (o.id||"") + "\",\"" + (o.code||"") + "\",\"" + (o.route||"") + "\",\"" + (o.tripId||"") + "\")'>\u270F\uFE0F Ubah Jadwal Penerbangan / Change Flight</button>" : "")
     + (canCan ? "<button class='btn btn-red' onclick='BATAL(\"" + (o.code||o.id) + "\")'>\u274C Ajukan Pembatalan Order</button>" : "")
     + "<button class='btn btn-wa' onclick=\"WA('Halo Admin M.M Baggage, saya tanya tentang order " + (o.code||o.id) + "')\">\uD83D\uDCAC Hubungi Admin</button>"
