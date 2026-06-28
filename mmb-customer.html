@@ -355,7 +355,7 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
     <div class="warn2"><div style="font-size:11px;font-weight:700;color:#C0392B;margin-bottom:3px">&#9888;&#65039; Perhatian</div><div style="font-size:12px;color:#C0392B;line-height:1.5">Dengan menekan Order, kamu menyetujui Syarat &amp; Ketentuan M.M Baggage.</div></div>
     <button class="btn btn-gold" id="sub-btn" onclick="SUB()">&#128230; Kirim Order / Submit &#8594;</button>
     <button class="btn-ghost" onclick="P('tnc')">&#128203; Baca S&amp;K Terlebih Dulu</button>
-    <div style="text-align:center;font-size:9px;color:#3a3a3a;margin-top:14px">v2.1 &middot; kategori Lainnya aktif</div>
+    <div style="text-align:center;font-size:9px;color:#3a3a3a;margin-top:14px">v2.2 v2.1 &middot; kategori Lainnya aktifmiddot; Lainnya dijamin tampil</div>
   </div>
 </div>
 <div id="p-confirm" class="page">
@@ -639,6 +639,9 @@ function RT(r, btn) {
 }
 function RI() {
   var cats = (CFG.cats||DCATS).filter(function(c){ return !c.routes || c.routes.indexOf(rute)>=0; });
+  // GUARANTEE: "Lainnya" (admin-priced free text) always available, regardless of admin config/timing
+  var _hasLain=false; for (var _i=0;_i<cats.length;_i++){ if(cats[_i].k==="Lainnya"){_hasLain=true;break;} }
+  if(!_hasLain) cats=cats.concat([{k:"Lainnya",l:"Lainnya",t:"kg"}]);
   var w = E("items-list"); if (!w) return;
   var h = "";
   for (var i=0;i<items.length;i++) {
@@ -1246,6 +1249,8 @@ function ATRK(oid,code,route) { addItms.push({cat:"",qty:"",desc:"",type:"kg"});
 function RADD(oid,code,route) {
   var w = E("ai-list"); if (!w) return;
   var cats = (CFG.cats||DCATS).filter(function(c){ return !c.routes || c.routes.indexOf(route)>=0; });
+  var _hasL=false; for (var _i=0;_i<cats.length;_i++){ if(cats[_i].k==="Lainnya"){_hasL=true;break;} }
+  if(!_hasL) cats=cats.concat([{k:"Lainnya",l:"Lainnya",t:"kg"}]);
   var h = "";
   for (var i=0;i<addItms.length;i++) {
     var it = addItms[i];
