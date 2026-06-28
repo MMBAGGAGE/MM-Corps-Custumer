@@ -646,7 +646,9 @@ function RI() {
       var c = cats[k];
       ph += "<span class='pill" + (it.cat===c.k?" on":"") + "' onclick='SC(" + i + ",\"" + c.k + "\",\"" + (c.t||"kg") + "\")'>" + c.l + "<span class='pill-u'>/" + (c.t||"kg") + "</span></span>";
     }
-    var sub = (it.cat && it.qty) ? "<div style='text-align:right;font-size:12px;color:#C9A84C;font-weight:700;margin-top:6px'>Subtotal: " + rp(parseFloat(it.qty||0)*r) + "</div>" : "";
+    var sub = it.adminPriced
+      ? ((it.cat && it.qty) ? "<div style='text-align:right;font-size:11px;color:#888;font-weight:600;margin-top:6px'>Subtotal: menunggu harga admin</div>" : "")
+      : ((it.cat && it.qty) ? "<div style='text-align:right;font-size:12px;color:#C9A84C;font-weight:700;margin-top:6px'>Subtotal: " + rp(parseFloat(it.qty||0)*r) + "</div>" : "");
     h += "<div class='item-row'><div class='item-hd'><span class='item-num'>\uD83D\uDCE6 Barang " + (i+1) + "</span>"
       + (items.length>1 ? "<div class='item-x' onclick='D(" + i + ")'>\u00D7</div>" : "")
       + "</div><div class='fld' style='margin-bottom:10px'><label>Jenis Barang *</label><div class='pills'>" + ph + "</div>"
@@ -656,22 +658,28 @@ function RI() {
       + "<div class='fld' style='margin:0'><label>" + (u==="pcs"?"Jumlah (pcs)":"Berat (kg)") + " *</label>"
       + "<input type='number' value='" + (it.qty||"") + "' placeholder='" + (u==="pcs"?"1":"0.5") + "' min='0.1' step='" + (u==="pcs"?"1":"0.1") + "' inputmode='decimal' oninput='UQ(" + i + ",this.value)' style='font-size:16px'></div>"
       + "<div class='fld' style='margin:0'><label>Harga/" + u + "</label>"
-      + "<input type='number' value='" + r + "' inputmode='numeric' oninput='UR(" + i + ",this.value)' style='font-size:16px;color:#C9A84C'></div>"
+      + (it.adminPriced
+         ? "<div style='background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:11px;padding:13px;font-size:12px;color:#C9A84C;font-weight:600;text-align:center'>\u2696\uFE0F Ditentukan admin</div></div>"
+         : "<input type='number' value='" + r + "' inputmode='numeric' oninput='UR(" + i + ",this.value)' style='font-size:16px;color:#C9A84C'></div>")
       + "</div>" + sub + "</div>";
   }
   w.innerHTML = h;
 }
-function SC(i,k,t){ items[i].cat=k; items[i].type=t; items[i].rate=rate(k,items[i].qty); RI(); CALC(); }
+function SC(i,k,t){ items[i].cat=k; items[i].type=t; if(k==="Lainnya"){ items[i].adminPriced=true; items[i].rate=0; } else { items[i].adminPriced=false; items[i].rate=rate(k,items[i].qty); } RI(); CALC(); }
 function A(){ items.push({id:Date.now(),cat:"",qty:"",desc:"",type:"kg"}); RI(); CALC(); }
 function D(i){ if(items.length<=1){ toast("Minimal 1 barang","err"); return; } items.splice(i,1); RI(); CALC(); }
 function UD(i,v){ items[i].desc=v; }
 function UQ(i,v){ items[i].qty=v; items[i].rate=rate(items[i].cat,v); CALC(); }
 function UR(i,v){ items[i].rate=parseFloat(v)||0; CALC(); }
 function CALC() {
-  var tot=0, lines=[], totalQty=0;
+  var tot=0, lines=[], totalQty=0, hasAdminPriced=false;
   for (var i=0;i<items.length;i++) {
     var it=items[i];
     var q=parseFloat(it.qty||0)||0;
+    if (it.adminPriced) {
+      if (it.cat && it.qty) { lines.push("Lainnya: "+it.qty+" "+(it.type||"kg")+" \u00D7 <span style='color:#888'>harga oleh admin</span>"); hasAdminPriced=true; }
+      continue;
+    }
     var r=parseFloat(it.rate||0)||rate(it.cat,it.qty)||0;
     tot += q*r;
     totalQty += q;
@@ -687,7 +695,7 @@ function CALC() {
     lines.push("<span style='color:#4CAF7D'>Diskon referral ("+activeRef.code+"): -"+rp(disc)+"</span>");
   }
   S("p-lines", lines.length ? lines.join("<br>") : "Isi barang di atas");
-  S("p-total", rp(finalTot));
+  S("p-total", rp(finalTot) + (hasAdminPriced ? " <span style='font-size:11px;color:#888'>+ barang admin</span>" : ""));
 }
 
 // ── TRIPS ────────────────────────────────────
@@ -1080,14 +1088,21 @@ function RTRACK(o, el) {
   var itH = "";
   if (o.items && o.items.length) {
     itH = "<div class='id-wrap'><div class='id-ttl'>Daftar Barang</div>";
+    var nRejected = 0;
     for (var i=0;i<o.items.length;i++) {
       var it = o.items[i];
-      var sc2 = it.status==="approved"?" is-ok":it.status==="rejected"?" is-no":" is-w";
-      var sl = it.status==="approved"?"\u2705 Disetujui":it.status==="rejected"?"\u274C Ditolak":"\u23F3 Pending";
+      if (it.status==="rejected") { nRejected++; continue; } // barang ditolak: tidak tampil di resi
+      var sc2 = it.status==="approved"?" is-ok":" is-w";
+      var sl = it.status==="approved"?"\u2705 Disetujui":"\u23F3 Pending";
+      var isAdminWait = (it.adminPriced && !(it.actRate||it.rate)); // Lainnya belum diharga admin
+      var hargaTxt = isAdminWait ? "<span style='color:#888'>menunggu admin</span>" : rp((it.actQty||it.qty)*(it.actRate||it.rate||0));
       itH += "<div class='id-row'><div><div style='font-size:12px;font-weight:700'>" + it.cat + "<span class='is" + sc2 + "'>" + sl + "</span></div>"
         + "<div style='font-size:11px;color:#555;margin-top:1px'>" + (it.desc||"") + " \u00B7 " + it.qty + " " + (it.type||"kg") + "</div>"
         + (it.adminNote ? "<div style='font-size:11px;color:#C0392B;margin-top:1px'>\uD83D\uDCDD " + it.adminNote + "</div>" : "")
-        + "</div><div style='font-family:monospace;font-size:11px;color:#8B6914'>" + rp((it.actQty||it.qty)*(it.actRate||it.rate||0)) + "</div></div>";
+        + "</div><div style='font-family:monospace;font-size:11px;color:#8B6914'>" + hargaTxt + "</div></div>";
+    }
+    if (nRejected>0) {
+      itH += "<div style='font-size:11px;color:#C0392B;padding:8px 0 0;text-align:center'>\u26A0\uFE0F " + nRejected + " barang tidak disetujui admin \u2014 cek info di WhatsApp</div>";
     }
     itH += "</div>";
   }
