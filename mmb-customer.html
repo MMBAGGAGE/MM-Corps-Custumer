@@ -355,7 +355,7 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
     <div class="warn2"><div style="font-size:11px;font-weight:700;color:#C0392B;margin-bottom:3px">&#9888;&#65039; Perhatian</div><div style="font-size:12px;color:#C0392B;line-height:1.5">Dengan menekan Order, kamu menyetujui Syarat &amp; Ketentuan M.M Baggage.</div></div>
     <button class="btn btn-gold" id="sub-btn" onclick="SUB()">&#128230; Kirim Order / Submit &#8594;</button>
     <button class="btn-ghost" onclick="P('tnc')">&#128203; Baca S&amp;K Terlebih Dulu</button>
-    <div style="text-align:center;font-size:9px;color:#3a3a3a;margin-top:14px">v2.2 v2.1 &middot; kategori Lainnya aktifmiddot; Lainnya dijamin tampil</div>
+    <div id="ver-mark" style="text-align:center;font-size:9px;color:#3a3a3a;margin-top:14px">v2.3</div>
   </div>
 </div>
 <div id="p-confirm" class="page">
@@ -414,6 +414,14 @@ var DCATS = [
   {k:"Lainnya",l:"Lainnya",t:"kg"}
 ];
 var DRATES = {Biasa:150000,Skincare:180000,Elektronik:175000,Makanan:145000,Rokok:120000,Lainnya:0};
+
+// Helper: guarantee a "Lainnya" pill exists in ANY category array, ignoring route filters
+function ensureLainnya(arr){
+  arr = Array.isArray(arr) ? arr.slice() : [];
+  for (var i=0;i<arr.length;i++){ if(arr[i] && arr[i].k==="Lainnya") return arr; }
+  arr.push({k:"Lainnya",l:"Lainnya",t:"kg"});
+  return arr;
+}
 
 var CFG = {cats:DCATS, rates:DRATES};
 var rute = "Cairo \u2192 Jakarta";
@@ -639,9 +647,7 @@ function RT(r, btn) {
 }
 function RI() {
   var cats = (CFG.cats||DCATS).filter(function(c){ return !c.routes || c.routes.indexOf(rute)>=0; });
-  // GUARANTEE: "Lainnya" (admin-priced free text) always available, regardless of admin config/timing
-  var _hasLain=false; for (var _i=0;_i<cats.length;_i++){ if(cats[_i].k==="Lainnya"){_hasLain=true;break;} }
-  if(!_hasLain) cats=cats.concat([{k:"Lainnya",l:"Lainnya",t:"kg"}]);
+  cats = ensureLainnya(cats);
   var w = E("items-list"); if (!w) return;
   var h = "";
   for (var i=0;i<items.length;i++) {
@@ -672,6 +678,7 @@ function RI() {
       + "</div>" + sub + "</div>";
   }
   w.innerHTML = h;
+  try { var vm=E("ver-mark"); if(vm){ var hasL=false; for(var z=0;z<cats.length;z++){if(cats[z].k==="Lainnya"){hasL=true;break;}} vm.textContent="v2.3 · "+cats.length+" kategori · Lainnya:"+(hasL?"YA":"TIDAK"); } } catch(e){}
 }
 function SC(i,k,t){ items[i].cat=k; items[i].type=t; if(k==="Lainnya"){ items[i].adminPriced=true; items[i].rate=0; } else { items[i].adminPriced=false; items[i].rate=rate(k,items[i].qty); } RI(); CALC(); }
 function A(){ items.push({id:Date.now(),cat:"",qty:"",desc:"",type:"kg"}); RI(); CALC(); }
