@@ -412,7 +412,7 @@ var DCATS = [
   {k:"Rokok",l:"Rokok",t:"pcs"},
   {k:"Lainnya",l:"Lainnya",t:"kg"}
 ];
-var DRATES = {Biasa:150000,Skincare:180000,Elektronik:175000,Makanan:145000,Rokok:120000,Lainnya:150000};
+var DRATES = {Biasa:150000,Skincare:180000,Elektronik:175000,Makanan:145000,Rokok:120000,Lainnya:0};
 
 var CFG = {cats:DCATS, rates:DRATES};
 var rute = "Cairo \u2192 Jakarta";
@@ -588,6 +588,10 @@ function loadCFG() {
     var cfg = fromFS(d.fields);
     if (cfg.cats && cfg.cats.length) {
       CFG.cats = cfg.cats.map(normCat);
+      // Always ensure a "Lainnya" category exists (admin-priced free text), even if admin config omits it
+      var hasLain = false;
+      for (var li=0; li<CFG.cats.length; li++){ if (CFG.cats[li].k==="Lainnya"){ hasLain=true; break; } }
+      if (!hasLain) CFG.cats.push({k:"Lainnya", l:"Lainnya", t:"kg"});
       // Build rates map from cats if cat has its own rate
       var rmap = {};
       for (var i=0;i<CFG.cats.length;i++) {
