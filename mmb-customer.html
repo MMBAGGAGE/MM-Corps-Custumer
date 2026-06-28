@@ -19,7 +19,7 @@
   --rim:inset 0 1px 0 rgba(255,255,255,.04);
 }
 html,body{height:100%;background:var(--ink);color:var(--cream);font-family:var(--sans);max-width:480px;margin:0 auto;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),transparent 60%),radial-gradient(90% 50% at 100% 100%,rgba(18,144,143,.07),transparent 60%);background-attachment:fixed}
+body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),transparent 60%),radial-gradient(90% 50% at 100% 100%,rgba(18,144,143,.07),transparent 60%);background-attachment:scroll}
 #splash{position:fixed;inset:0;z-index:9999;background:radial-gradient(120% 80% at 50% 30%,#16130C,var(--ink) 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:splashFade .5s ease 1.8s forwards;pointer-events:none}
 @keyframes splashFade{to{opacity:0;visibility:hidden}}
 .sp-logo{width:104px;height:104px;object-fit:contain;margin-bottom:18px;animation:spUp .6s cubic-bezier(.2,.7,.2,1);filter:drop-shadow(0 6px 18px rgba(201,168,76,.25))}
@@ -847,7 +847,7 @@ function SUB() {
   if (!valid.length) return toast("Isi minimal 1 barang (kategori + berat + deskripsi)","err");
   var sTrip = null; for (var i=0;i<trips.length;i++) if (trips[i].id===tripId) { sTrip=trips[i]; break; }
   if (sTrip && sTrip.status!=="open") return toast("Trip ini tidak menerima order baru","err");
-  var totGross = valid.reduce(function(s,it){ return s + parseFloat(it.qty||0)*(parseFloat(it.rate||0)||rate(it.cat,it.qty)); }, 0);
+  var totGross = valid.reduce(function(s,it){ if(it.cat==="Lainnya"||it.adminPriced) return s; return s + parseFloat(it.qty||0)*(parseFloat(it.rate||0)||rate(it.cat,it.qty)); }, 0);
   var totQty = valid.reduce(function(s,it){ return s + parseFloat(it.qty||0); }, 0);
   var refDisc = 0, refData = null;
   if (activeRef && activeRef.discountPerKg > 0) {
@@ -858,7 +858,7 @@ function SUB() {
   var tot = totGross - refDisc;
   var now = new Date().toISOString();
   var ord = Object.assign({name:name,phone:phone,route:rute,tripId:tripId,tripDate:sTrip?sTrip.date:""}, rcv, {
-    items: valid.map(function(it){ return {cat:it.cat,type:it.type||"kg",qty:parseFloat(it.qty),rate:parseFloat(it.rate||0)||rate(it.cat,it.qty),desc:it.desc,status:"pending",adminNote:""}; }),
+    items: valid.map(function(it){ var ap = (it.cat==="Lainnya")||!!it.adminPriced; return {cat:it.cat,type:it.type||"kg",qty:parseFloat(it.qty),rate:ap?0:(parseFloat(it.rate||0)||rate(it.cat,it.qty)),desc:it.desc,status:"pending",adminPriced:ap,adminNote:""}; }),
     totalEst:tot, totalGross:totGross, referral:refData, totalFinal:null,
     note:(V("f-note")||"").trim(), buktiTransfer:(V("f-tf")||"").trim(),
     status:"pending", payStatus:"belum", waGroupLink:"", photos:[], statusNote:"",
