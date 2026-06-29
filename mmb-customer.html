@@ -355,7 +355,7 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
     <div class="warn2"><div style="font-size:11px;font-weight:700;color:#C0392B;margin-bottom:3px">&#9888;&#65039; Perhatian</div><div style="font-size:12px;color:#C0392B;line-height:1.5">Dengan menekan Order, kamu menyetujui Syarat &amp; Ketentuan M.M Baggage.</div></div>
     <button class="btn btn-gold" id="sub-btn" onclick="SUB()">&#128230; Kirim Order / Submit &#8594;</button>
     <button class="btn-ghost" onclick="P('tnc')">&#128203; Baca S&amp;K Terlebih Dulu</button>
-    <div id="ver-mark" style="text-align:center;font-size:9px;color:#3a3a3a;margin-top:14px">v2.4</div>
+    <div id="ver-mark" style="text-align:center;font-size:9px;color:#3a3a3a;margin-top:14px">v2.5</div>
   </div>
 </div>
 <div id="p-confirm" class="page">
@@ -415,11 +415,12 @@ var DCATS = [
 ];
 var DRATES = {Biasa:150000,Skincare:180000,Elektronik:175000,Makanan:145000,Rokok:120000,Lainnya:0};
 
-// Helper: guarantee a "Lainnya" pill exists in ANY category array, ignoring route filters
+// Helper: ALWAYS prepend a dedicated "__LAIN__" pill (admin-priced free text).
+// Uses a unique key so it never collides with any admin category (even one mislabeled "Lainnya").
 function ensureLainnya(arr){
   arr = Array.isArray(arr) ? arr.slice() : [];
-  for (var i=0;i<arr.length;i++){ if(arr[i] && arr[i].k==="Lainnya"){ var x=arr.splice(i,1)[0]; arr.unshift(x); return arr; } }
-  arr.unshift({k:"Lainnya",l:"Lainnya (barang lain)",t:"kg"});
+  for (var i=0;i<arr.length;i++){ if(arr[i] && arr[i].k==="__LAIN__") return arr; }
+  arr.unshift({k:"__LAIN__",l:"Lainnya (barang lain)",t:"kg"});
   return arr;
 }
 
@@ -652,15 +653,16 @@ function RI() {
   var h = "";
   for (var i=0;i<items.length;i++) {
     var it = items[i];
-    var sc = null; for (var j=0;j<cats.length;j++) if (cats[j].k===it.cat) { sc = cats[j]; break; }
+    var itKey = it.catKey || it.cat;
+    var sc = null; for (var j=0;j<cats.length;j++) if (cats[j].k===itKey) { sc = cats[j]; break; }
     var u = sc ? (sc.t||"kg") : "kg";
     var r = rate(it.cat, it.qty);
     var ph = "";
     for (var k=0;k<cats.length;k++) {
       var c = cats[k];
-      var isLain = (c.k==="Lainnya");
+      var isLain = (c.k==="__LAIN__");
       var lainStyle = isLain ? " style='border:1.5px solid #C9A84C;background:rgba(201,168,76,.14);color:#F0D080;font-weight:700'" : "";
-      ph += "<span class='pill" + (it.cat===c.k?" on":"") + "'" + lainStyle + " onclick='SC(" + i + ",\"" + c.k + "\",\"" + (c.t||"kg") + "\")'>" + (isLain?"\u2728 ":"") + c.l + "<span class='pill-u'>/" + (c.t||"kg") + "</span></span>";
+      ph += "<span class='pill" + (itKey===c.k?" on":"") + "'" + lainStyle + " onclick='SC(" + i + ",\"" + c.k + "\",\"" + (c.t||"kg") + "\")'>" + (isLain?"\u2728 ":"") + c.l + "<span class='pill-u'>/" + (c.t||"kg") + "</span></span>";
     }
     var sub = it.adminPriced
       ? ((it.cat && it.qty) ? "<div style='text-align:right;font-size:11px;color:#888;font-weight:600;margin-top:6px'>Subtotal: menunggu harga admin</div>" : "")
@@ -680,9 +682,9 @@ function RI() {
       + "</div>" + sub + "</div>";
   }
   w.innerHTML = h;
-  try { var vm=E("ver-mark"); if(vm){ var hasL=false; for(var z=0;z<cats.length;z++){if(cats[z].k==="Lainnya"){hasL=true;break;}} vm.textContent="v2.4 · "+cats.length+" kategori · Lainnya:"+(hasL?"YA":"TIDAK"); } } catch(e){}
+  try { var vm=E("ver-mark"); if(vm){ var hasL=false; for(var z=0;z<cats.length;z++){if(cats[z].k==="__LAIN__"){hasL=true;break;}} vm.textContent="v2.5 · "+cats.length+" kategori · Lainnya:"+(hasL?"YA":"TIDAK"); } } catch(e){}
 }
-function SC(i,k,t){ items[i].cat=k; items[i].type=t; if(k==="Lainnya"){ items[i].adminPriced=true; items[i].rate=0; } else { items[i].adminPriced=false; items[i].rate=rate(k,items[i].qty); } RI(); CALC(); }
+function SC(i,k,t){ var isLain=(k==="__LAIN__"); items[i].cat=isLain?"Lainnya":k; items[i].type=t; if(isLain){ items[i].adminPriced=true; items[i].rate=0; items[i].catKey="__LAIN__"; } else { items[i].adminPriced=false; items[i].rate=rate(k,items[i].qty); items[i].catKey=k; } RI(); CALC(); }
 function A(){ items.push({id:Date.now(),cat:"",qty:"",desc:"",type:"kg"}); RI(); CALC(); }
 function D(i){ if(items.length<=1){ toast("Minimal 1 barang","err"); return; } items.splice(i,1); RI(); CALC(); }
 function UD(i,v){ items[i].desc=v; }
@@ -1258,8 +1260,8 @@ function ATRK(oid,code,route) { addItms.push({cat:"",qty:"",desc:"",type:"kg"});
 function RADD(oid,code,route) {
   var w = E("ai-list"); if (!w) return;
   var cats = (CFG.cats||DCATS).filter(function(c){ return !c.routes || c.routes.indexOf(route)>=0; });
-  var _hasL=false; for (var _i=0;_i<cats.length;_i++){ if(cats[_i].k==="Lainnya"){_hasL=true;break;} }
-  if(!_hasL) cats=cats.concat([{k:"Lainnya",l:"Lainnya",t:"kg"}]);
+  var _hasL=false; for (var _i=0;_i<cats.length;_i++){ if(cats[_i].k==="__LAIN__"){_hasL=true;break;} }
+  if(!_hasL) cats=cats.unshift?cats:cats; if(!_hasL) cats=[{k:"__LAIN__",l:"Lainnya (barang lain)",t:"kg"}].concat(cats);
   var h = "";
   for (var i=0;i<addItms.length;i++) {
     var it = addItms[i];
