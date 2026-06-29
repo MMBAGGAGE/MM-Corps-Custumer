@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0A0A0A">
 <title>M.M Baggage</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:none}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:none;touch-action:manipulation}
 :root{
   --ink:#070708;--ink2:#0D0D10;--ink3:#141418;--ink4:#1C1C22;--line:#26262E;
   --gold:#C9A84C;--gold-lite:#F0D080;--gold-dim:#8B6914;
@@ -661,8 +661,7 @@ function RI() {
     for (var k=0;k<cats.length;k++) {
       var c = cats[k];
       var isLain = (c.k==="__LAIN__");
-      var lainStyle = isLain ? " style='border:1.5px solid #C9A84C;background:rgba(201,168,76,.14);color:#F0D080;font-weight:700'" : "";
-      ph += "<span class='pill" + (itKey===c.k?" on":"") + "'" + lainStyle + " onclick='SC(" + i + ",\"" + c.k + "\",\"" + (c.t||"kg") + "\")'>" + (isLain?"\u2728 ":"") + c.l + "<span class='pill-u'>/" + (c.t||"kg") + "</span></span>";
+      ph += "<span class='pill" + (itKey===c.k?" on":"") + "' onclick='SC(" + i + ",\"" + c.k + "\",\"" + (c.t||"kg") + "\")'>" + c.l + "<span class='pill-u'>/" + (c.t||"kg") + "</span></span>";
     }
     var sub = it.adminPriced
       ? ((it.cat && it.qty) ? "<div style='text-align:right;font-size:11px;color:#888;font-weight:600;margin-top:6px'>Subtotal: menunggu harga admin</div>" : "")
