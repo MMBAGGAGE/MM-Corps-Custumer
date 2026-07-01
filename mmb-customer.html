@@ -286,8 +286,9 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
     <div class="tut-step"><div class="tut-num">6</div><div class="tut-body"><div class="tut-title">Masuk Grup WhatsApp Trip</div><div class="tut-desc"><strong>WAJIB!</strong> Link grup <strong>baru diberikan setelah order kamu disetujui admin</strong> &mdash; akan muncul di halaman Cek Status. Semua info pengambilan & jadwal hanya diumumkan di grup ini. <span style="color:#666">The group link is only shared after admin approves your order, shown on the Track page. All pickup info is announced there.</span></div></div></div>
     <div class="tut-step"><div class="tut-num">7</div><div class="tut-body"><div class="tut-title">Antar Barang ke Drop Point</div><div class="tut-desc">Alamat drop point muncul setelah disetujui. Antar barang sebelum batas waktu (H-2 / H-1). <span style="color:#666">Deliver to drop point before cutoff.</span></div></div></div>
     <div class="tut-step"><div class="tut-num">8</div><div class="tut-body"><div class="tut-title">Pantau Status &amp; Foto</div><div class="tut-desc">Pantau status barang real-time di halaman Cek Status. <strong>Foto/video barang akan diupdate kurir pada H-1 sebelum keberangkatan</strong> sebagai bentuk <strong>verifikasi bahwa barangmu sudah diterima & siap berangkat</strong>. <span style="color:#666">Track in real time. Photos/videos are uploaded by the courier on H-1 before flight, as proof your items have been received and are ready to ship.</span></div></div></div>
-    <div class="tut-step"><div class="tut-num">9</div><div class="tut-body"><div class="tut-title">Barang Tiba &amp; Pengambilan</div><div class="tut-desc">Setelah tiba di Cairo, <strong>info pengambilan diumumkan di grup WhatsApp</strong>. Ikuti instruksi admin. <span style="color:#666">Pickup info announced in WA group.</span></div></div></div>
-    <div class="tut-step"><div class="tut-num">10</div><div class="tut-body"><div class="tut-title">Beri Penilaian &amp; Saran</div><div class="tut-desc">Sudah terima barang? <strong>Bantu kami jadi lebih baik!</strong> Luangkan sebentar untuk menilai kinerja M.M Baggage dan kirim saranmu di menu <strong>Penilaian &amp; Saran</strong>. Masukanmu sangat berarti. <span style="color:#666">Received your items? Help us improve &mdash; rate M.M Baggage and share your suggestions on the Feedback page. Your input matters.</span></div></div></div>
+    <div class="tut-step"><div class="tut-num">9</div><div class="tut-body"><div class="tut-title">Batalkan Barang (bila perlu)</div><div class="tut-desc">Ingin membatalkan <strong>sebagian barang</strong> atau seluruh order? Di halaman Cek Status, tekan tombol <strong>"Minta Batalkan Barang Ini"</strong> pada barang yang dimaksud. Permintaan otomatis terkirim ke admin via WhatsApp untuk dikonfirmasi. <strong>Batas: maksimal H-4 sebelum keberangkatan.</strong> <span style="color:#666">To cancel some items or the whole order, use the button on the Track page. Requests go to admin via WhatsApp. Limit: up to 4 days before departure.</span></div></div></div>
+    <div class="tut-step"><div class="tut-num">10</div><div class="tut-body"><div class="tut-title">Barang Tiba &amp; Pengambilan</div><div class="tut-desc">Setelah tiba di Cairo, <strong>info pengambilan diumumkan di grup WhatsApp</strong>. Ikuti instruksi admin. <span style="color:#666">Pickup info announced in WA group.</span></div></div></div>
+    <div class="tut-step"><div class="tut-num">11</div><div class="tut-body"><div class="tut-title">Beri Penilaian &amp; Saran</div><div class="tut-desc">Sudah terima barang? <strong>Bantu kami jadi lebih baik!</strong> Luangkan sebentar untuk menilai kinerja M.M Baggage dan kirim saranmu di menu <strong>Penilaian &amp; Saran</strong>. Masukanmu sangat berarti. <span style="color:#666">Received your items? Help us improve &mdash; rate M.M Baggage and share your suggestions on the Feedback page. Your input matters.</span></div></div></div>
 
     <div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.25);border-radius:13px;padding:15px;margin-top:18px;text-align:center">
       <div style="font-size:24px;margin-bottom:6px">&#11088;</div>
@@ -678,7 +679,17 @@ function RI() {
       + (it.adminPriced
          ? "<div style='background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:11px;padding:13px;font-size:12px;color:#C9A84C;font-weight:600;text-align:center'>\u2696\uFE0F Ditentukan admin</div></div>"
          : "<input type='number' value='" + r + "' inputmode='numeric' oninput='UR(" + i + ",this.value)' style='font-size:16px;color:#C9A84C'></div>")
-      + "</div>" + sub + "</div>";
+      + "</div>" + sub
+      + (it.adminPriced
+         ? "<div style='background:rgba(74,159,212,.08);border:1px solid rgba(74,159,212,.25);border-radius:11px;padding:12px;margin-top:10px'>"
+           + "<div style='font-size:11px;color:#7Fc4e8;font-weight:700;margin-bottom:6px'>\uD83D\uDCF8 Foto Contoh Barang (untuk persetujuan admin)</div>"
+           + "<div style='font-size:11px;color:#9A9488;line-height:1.5;margin-bottom:8px'>Barang jenis \"Lainnya\" perlu dicek admin. Kirim foto contoh barang agar admin bisa menyetujui & menetapkan harga. / Upload a sample photo so admin can approve & set the price.</div>"
+           + (it.photo
+              ? "<div style='position:relative'><img src='" + it.photo + "' style='width:100%;max-height:180px;object-fit:cover;border-radius:9px;display:block'><button onclick='RmPhoto(" + i + ")' style='position:absolute;top:6px;right:6px;background:rgba(212,80,74,.9);color:#fff;border:none;border-radius:7px;width:30px;height:30px;font-size:15px;cursor:pointer'>\u00D7</button></div>"
+              : "<label style='display:block;background:var(--ink2);border:1px dashed var(--line);border-radius:9px;padding:14px;text-align:center;font-size:12px;color:#7Fc4e8;cursor:pointer'>\uD83D\uDCF7 Ketuk untuk pilih / ambil foto<input type='file' accept='image/*' capture='environment' onchange='UPhoto(" + i + ",this)' style='display:none'></label>")
+           + "</div>"
+         : "")
+      + "</div>";
   }
   w.innerHTML = h;
   try { var vm=E("ver-mark"); if(vm){ var hasL=false; for(var z=0;z<cats.length;z++){if(cats[z].k==="__LAIN__"){hasL=true;break;}} vm.textContent="v2.5 · "+cats.length+" kategori · Lainnya:"+(hasL?"YA":"TIDAK"); } } catch(e){}
@@ -689,6 +700,42 @@ function D(i){ if(items.length<=1){ toast("Minimal 1 barang","err"); return; } i
 function UD(i,v){ items[i].desc=v; }
 function UQ(i,v){ items[i].qty=v; items[i].rate=rate(items[i].cat,v); CALC(); }
 function UR(i,v){ items[i].rate=parseFloat(v)||0; CALC(); }
+
+// === UPLOAD FOTO CONTOH BARANG (untuk barang "Lainnya" — minta persetujuan admin) ===
+function compressPhotoCust(file){
+  return new Promise(function(resolve,reject){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var img=new Image();
+      img.onload=function(){
+        var w=img.width,h=img.height,MAX=720;
+        if(w>h&&w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+        else if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}
+        var canvas=document.createElement("canvas");
+        canvas.width=w;canvas.height=h;
+        canvas.getContext("2d").drawImage(img,0,0,w,h);
+        var q=0.6,out=canvas.toDataURL("image/jpeg",q);
+        while(out.length>420000&&q>0.25){q-=0.08;out=canvas.toDataURL("image/jpeg",q);}
+        resolve(out);
+      };
+      img.onerror=function(){reject(new Error("Gambar tidak valid"));};
+      img.src=e.target.result;
+    };
+    reader.onerror=function(){reject(new Error("Gagal baca file"));};
+    reader.readAsDataURL(file);
+  });
+}
+function UPhoto(i,input){
+  var file=input.files&&input.files[0]; if(!file) return;
+  if(file.size>8*1024*1024){ toast("Foto terlalu besar (maks 8MB)","err"); return; }
+  toast("Memproses foto...","info");
+  compressPhotoCust(file).then(function(dataUrl){
+    items[i].photo=dataUrl;
+    RI();
+    toast("Foto contoh barang siap dikirim ke admin ✅","ok");
+  }).catch(function(e){ toast("Gagal: "+e.message,"err"); });
+}
+function RmPhoto(i){ items[i].photo=null; RI(); }
 function CALC() {
   var tot=0, lines=[], totalQty=0, hasAdminPriced=false;
   for (var i=0;i<items.length;i++) {
@@ -829,6 +876,7 @@ function getNextSeq(cb) {
 // ── SUBMIT ───────────────────────────────────
 function SUB() {
   var btn = E("sub-btn");
+  if (window._submitting) return;
   var name = (V("f-name")||"").trim();
   var phoneRaw = (V("f-phone")||"").trim();
   var phone = phoneRaw.replace(/[^0-9+]/g,"");
@@ -876,14 +924,14 @@ function SUB() {
   var tot = totGross - refDisc;
   var now = new Date().toISOString();
   var ord = Object.assign({name:name,phone:phone,route:rute,tripId:tripId,tripDate:sTrip?sTrip.date:""}, rcv, {
-    items: valid.map(function(it){ var ap = (it.cat==="Lainnya")||!!it.adminPriced; return {cat:it.cat,type:it.type||"kg",qty:parseFloat(it.qty),rate:ap?0:(parseFloat(it.rate||0)||rate(it.cat,it.qty)),desc:it.desc,status:"pending",adminPriced:ap,adminNote:""}; }),
+    items: valid.map(function(it){ var ap = (it.cat==="Lainnya")||!!it.adminPriced; return {cat:it.cat,type:it.type||"kg",qty:parseFloat(it.qty),rate:ap?0:(parseFloat(it.rate||0)||rate(it.cat,it.qty)),desc:it.desc,status:"pending",adminPriced:ap,adminNote:"",photo:it.photo||null}; }),
     totalEst:tot, totalGross:totGross, referral:refData, totalFinal:null,
     note:(V("f-note")||"").trim(), buktiTransfer:(V("f-tf")||"").trim(),
     status:"pending", payStatus:"belum", waGroupLink:"", photos:[], statusNote:"",
     history:[{status:"pending",ts:Date.now(),note:"Order masuk dari customer"}],
     createdAt:now
   });
-  btn.disabled = true; btn.textContent = "\u23F3 Mengirim...";
+  btn.disabled = true; btn.textContent = "\u23F3 Mengirim..."; window._submitting = true;
   // Generate sequential code: MMB + DDMMYY + 5-digit running number
   getNextSeq(function(seq){
     var d = new Date();
@@ -894,7 +942,7 @@ function SUB() {
     ord.code = code;
     fsAdd("orders", ord, function(res){
     if (!res || !res.name) {
-      btn.disabled = false; btn.textContent = "\uD83D\uDCE6 Kirim Order \u2192";
+      btn.disabled = false; btn.textContent = "\uD83D\uDCE6 Kirim Order \u2192"; window._submitting = false;
       toast("Gagal kirim. Cek koneksi & coba lagi.","err"); return;
     }
     var docId = res.name.split("/").pop();
@@ -914,10 +962,11 @@ function SUB() {
       var il = valid.map(function(it){ return "<div style='font-size:12px;color:#888;margin-bottom:3px'>\u2022 " + it.cat + ": " + it.qty + " " + (it.type||"kg") + " \u2014 " + it.desc + "</div>"; }).join("");
       var ch = "<div class='info-box'><div class='info-ttl'>\uD83D\uDCE6 Barang</div>" + il + "<div style='font-size:13px;font-weight:700;color:#C9A84C;margin-top:7px'>Est. Total: " + rp(tot) + "</div></div>";
       ch += "<div style='background:rgba(212,160,23,.07);border:1px solid rgba(212,160,23,.2);border-radius:11px;padding:12px;margin-bottom:10px'><div style='font-size:8px;font-weight:700;letter-spacing:2px;color:#D4A017;margin-bottom:5px'>\u23F3 MENUNGGU KONFIRMASI</div><div style='font-size:12px;color:#C8C0B0;line-height:1.5'>Alamat drop point Jakarta akan diberikan setelah order kamu disetujui admin. Cek halaman status secara berkala.</div></div>";
+      ch += "<div style='background:rgba(212,80,74,.06);border:1px solid rgba(212,80,74,.2);border-radius:11px;padding:12px;margin-bottom:10px'><div style='font-size:8px;font-weight:700;letter-spacing:2px;color:#D4504A;margin-bottom:5px'>\u2139\uFE0F MAKLUMAT PEMBATALAN</div><div style='font-size:12px;color:#C8C0B0;line-height:1.5'>Ingin membatalkan sebagian atau seluruh barang? Buka halaman <strong>Cek Status</strong>, tekan tombol batal pada barang yang dimaksud. Permintaan akan dikonfirmasi admin via WhatsApp. Pembatalan hanya bisa maksimal <strong>H-4 sebelum keberangkatan</strong>. / To cancel items, use the Track page; requests are confirmed via WhatsApp, up to 4 days before departure.</div></div>";
       ch += "<div class='warn2'><div style='font-size:11px;font-weight:700;color:#C0392B;margin-bottom:3px'>\u26A0\uFE0F Ingat</div><div style='font-size:12px;color:#C0392B;line-height:1.5'>Harga belum termasuk bea cukai & pajak.</div></div>";
       E("c-detail").innerHTML = ch;
       P("confirm");
-      btn.disabled = false; btn.textContent = "\uD83D\uDCE6 Kirim Order \u2192";
+      btn.disabled = false; btn.textContent = "\uD83D\uDCE6 Kirim Order \u2192"; window._submitting = false;
     });
     });
   });
@@ -1086,6 +1135,7 @@ function TRACK() {
       return;
     }
     var o = docs[0].data; o.id = docs[0].id;
+    window._trackedOrder = o;
     RTRACK(o, el);
   });
 }
@@ -1107,16 +1157,20 @@ function RTRACK(o, el) {
   if (o.items && o.items.length) {
     itH = "<div class='id-wrap'><div class='id-ttl'>Daftar Barang</div>";
     var nRejected = 0;
+    var itemCancelable = (o.status==="pending" || o.status==="approved");
     for (var i=0;i<o.items.length;i++) {
       var it = o.items[i];
       if (it.status==="rejected") { nRejected++; continue; } // barang ditolak: tidak tampil di resi
-      var sc2 = it.status==="approved"?" is-ok":" is-w";
-      var sl = it.status==="approved"?"\u2705 Disetujui":"\u23F3 Pending";
+      var isReqCancel = (it.status==="cancel_requested");
+      var sc2 = it.status==="approved"?" is-ok":isReqCancel?" is-no":" is-w";
+      var sl = it.status==="approved"?"\u2705 Disetujui":isReqCancel?"\u23F3 Minta Batal":"\u23F3 Pending";
       var isAdminWait = (it.adminPriced && !(it.actRate||it.rate)); // Lainnya belum diharga admin
       var hargaTxt = isAdminWait ? "<span style='color:#888'>menunggu admin</span>" : rp((it.actQty||it.qty)*(it.actRate||it.rate||0));
-      itH += "<div class='id-row'><div><div style='font-size:12px;font-weight:700'>" + it.cat + "<span class='is" + sc2 + "'>" + sl + "</span></div>"
+      itH += "<div class='id-row'><div style='flex:1'><div style='font-size:12px;font-weight:700'>" + it.cat + "<span class='is" + sc2 + "'>" + sl + "</span></div>"
         + "<div style='font-size:11px;color:#555;margin-top:1px'>" + (it.desc||"") + " \u00B7 " + it.qty + " " + (it.type||"kg") + "</div>"
         + (it.adminNote ? "<div style='font-size:11px;color:#C0392B;margin-top:1px'>\uD83D\uDCDD " + it.adminNote + "</div>" : "")
+        + ((itemCancelable && !isReqCancel) ? "<button onclick='REQCANCEL(\"" + (o.id||"") + "\"," + i + ",\"" + (o.code||"") + "\")' style='margin-top:6px;background:rgba(212,80,74,.1);border:1px solid rgba(212,80,74,.3);color:#D4504A;border-radius:7px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer'>\u274C Minta Batalkan Barang Ini</button>" : "")
+        + (isReqCancel ? "<div style='font-size:10px;color:#D4A017;margin-top:5px'>\u23F3 Menunggu konfirmasi admin via WhatsApp</div>" : "")
         + "</div><div style='font-family:monospace;font-size:11px;color:#8B6914'>" + hargaTxt + "</div></div>";
     }
     if (nRejected>0) {
@@ -1298,6 +1352,16 @@ function SADD(oid,code) {
 function BATAL(code) {
   if (!confirm("Ajukan pembatalan order " + code + "?")) return;
   WA("Halo Admin M.M Baggage,\n\nSaya ingin mengajukan *PEMBATALAN ORDER*:\n\n\uD83D\uDCCB Kode: *" + code + "*\n\nMohon dikonfirmasi. Terima kasih.");
+}
+// === #2 REQUEST CANCEL PER BARANG ===
+function REQCANCEL(oid, idx, code) {
+  var o = null;
+  // ambil data order dari hasil track terakhir
+  if (window._trackedOrder && window._trackedOrder.id===oid) o = window._trackedOrder;
+  var it = (o && o.items && o.items[idx]) ? o.items[idx] : null;
+  var barang = it ? (it.cat + (it.desc?" ("+it.desc+")":"") + " \u00B7 " + it.qty + " " + (it.type||"kg")) : ("Barang #"+(idx+1));
+  if (!confirm("Ajukan pembatalan barang ini?\n\n" + barang + "\n\nAdmin akan konfirmasi via WhatsApp.")) return;
+  WA("Halo Admin M.M Baggage,\n\nSaya ingin *MEMBATALKAN SALAH SATU BARANG* dari order saya:\n\n\uD83D\uDCCB Kode Order: *" + code + "*\n\u274C Barang: *" + barang + "*\n\nMohon dikonfirmasi & dibatalkan barang tersebut. Terima kasih \uD83D\uDE4F");
 }
 
 // ── UBAH TRIP (Change Flight) ────────────────
