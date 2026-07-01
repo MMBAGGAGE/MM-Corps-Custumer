@@ -1277,7 +1277,7 @@ function RTRACK(o, el) {
     + "<div class='divider'></div>"
     + ratingH
     + ((o.status==="pending"||o.status==="approved") ? "<button class='btn btn-dark' onclick='UBAHTRIP(\"" + (o.id||"") + "\",\"" + (o.code||"") + "\",\"" + (o.route||"") + "\",\"" + (o.tripId||"") + "\")'>\u270F\uFE0F Ubah Jadwal Penerbangan / Change Flight</button>" : "")
-    + (canCan ? "<button class='btn btn-red' onclick='BATAL(\"" + (o.code||o.id) + "\")'>\u274C Ajukan Pembatalan Order</button>" : "")
+    + (canCan ? "<button class='btn btn-red' onclick='BATALORDER(\"" + (o.id||"") + "\",\"" + (o.code||o.id) + "\")'>\u274C Ajukan Pembatalan Order</button>" : "")
     + "<button class='btn btn-wa' onclick=\"WA('Halo Admin M.M Baggage, saya tanya tentang order " + (o.code||o.id) + "')\">\uD83D\uDCAC Hubungi Admin</button>"
     + "</div></div>";
 
@@ -1353,15 +1353,34 @@ function BATAL(code) {
   if (!confirm("Ajukan pembatalan order " + code + "?")) return;
   WA("Halo Admin M.M Baggage,\n\nSaya ingin mengajukan *PEMBATALAN ORDER*:\n\n\uD83D\uDCCB Kode: *" + code + "*\n\nMohon dikonfirmasi. Terima kasih.");
 }
-// === #2 REQUEST CANCEL PER BARANG ===
+// === #2/#1 REQUEST CANCEL PER BARANG — tulis ke Firestore agar admin dapat notif & tanda ===
 function REQCANCEL(oid, idx, code) {
-  var o = null;
-  // ambil data order dari hasil track terakhir
-  if (window._trackedOrder && window._trackedOrder.id===oid) o = window._trackedOrder;
-  var it = (o && o.items && o.items[idx]) ? o.items[idx] : null;
-  var barang = it ? (it.cat + (it.desc?" ("+it.desc+")":"") + " \u00B7 " + it.qty + " " + (it.type||"kg")) : ("Barang #"+(idx+1));
-  if (!confirm("Ajukan pembatalan barang ini?\n\n" + barang + "\n\nAdmin akan konfirmasi via WhatsApp.")) return;
-  WA("Halo Admin M.M Baggage,\n\nSaya ingin *MEMBATALKAN SALAH SATU BARANG* dari order saya:\n\n\uD83D\uDCCB Kode Order: *" + code + "*\n\u274C Barang: *" + barang + "*\n\nMohon dikonfirmasi & dibatalkan barang tersebut. Terima kasih \uD83D\uDE4F");
+  var o = (window._trackedOrder && window._trackedOrder.id===oid) ? window._trackedOrder : null;
+  if (!o || !o.items || !o.items[idx]) { toast("Data order tidak ditemukan, muat ulang halaman","err"); return; }
+  var it = o.items[idx];
+  var barang = it.cat + (it.desc?" ("+it.desc+")":"") + " \u00B7 " + it.qty + " " + (it.type||"kg");
+  if (!confirm("Ajukan pembatalan barang ini?\n\n" + barang + "\n\nAdmin akan mengkonfirmasi permintaanmu.")) return;
+  // Tandai item sebagai cancel_requested + simpan ke Firestore (seluruh array items)
+  var newItems = o.items.map(function(x,j){ return j===idx ? Object.assign({}, x, {status:"cancel_requested", cancelReqAt:Date.now()}) : x; });
+  o.items = newItems; // update lokal supaya UI langsung berubah
+  RTRACK(o, E("t-result")); // re-render tracking instan
+  fsPatch("orders/"+oid, {items:newItems, cancelFlag:true, cancelReqAt:Date.now()}, function(){
+    toast("Permintaan batal terkirim. Admin akan konfirmasi ✅","ok");
+  });
+  // Buka WA admin sebagai pemberitahuan tambahan
+  WA("Halo Admin M.M Baggage,\n\nSaya mengajukan *PEMBATALAN BARANG*:\n\n\uD83D\uDCCB Kode Order: *" + code + "*\n\u274C Barang: *" + barang + "*\n\nSudah saya tandai di aplikasi. Mohon dikonfirmasi (approve/tolak). Terima kasih \uD83D\uDE4F");
+}
+function BATALORDER(oid, code) {
+  var o = (window._trackedOrder && window._trackedOrder.id===oid) ? window._trackedOrder : null;
+  if (!o) { toast("Data order tidak ditemukan","err"); return; }
+  if (!confirm("Ajukan pembatalan SELURUH order " + code + "?\n\nAdmin akan mengkonfirmasi.")) return;
+  var newItems = (o.items||[]).map(function(x){ return (x.status==="rejected"||x.status==="cancelled") ? x : Object.assign({}, x, {status:"cancel_requested", cancelReqAt:Date.now()}); });
+  o.items = newItems;
+  RTRACK(o, E("t-result"));
+  fsPatch("orders/"+oid, {items:newItems, cancelFlag:true, cancelReqAt:Date.now(), cancelWholeOrder:true}, function(){
+    toast("Permintaan batal order terkirim. Admin akan konfirmasi ✅","ok");
+  });
+  WA("Halo Admin M.M Baggage,\n\nSaya mengajukan *PEMBATALAN SELURUH ORDER*:\n\n\uD83D\uDCCB Kode Order: *" + code + "*\n\nSudah saya tandai di aplikasi. Mohon dikonfirmasi. Terima kasih \uD83D\uDE4F");
 }
 
 // ── UBAH TRIP (Change Flight) ────────────────
