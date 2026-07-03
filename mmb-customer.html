@@ -340,7 +340,8 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
       <div id="trip-info"></div>
     </div>
     <div class="sec"><div class="sec-lbl">Barang / Items</div>
-      <p style="font-size:12px;color:#555;margin-bottom:12px;line-height:1.5">Tambahkan semua jenis barang. Bisa lebih dari 1 jenis.</p>
+      <p style="font-size:12px;color:#555;margin-bottom:8px;line-height:1.5">Tambahkan semua jenis barang. Bisa lebih dari 1 jenis.</p>
+      <div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.25);border-radius:9px;padding:9px 11px;margin-bottom:12px;font-size:11px;color:#C9A84C;line-height:1.5">⚠️ Minimal pemesanan <strong>1 kg</strong> atau <strong>1 pcs</strong> per barang. / Minimum order is 1 kg or 1 pcs per item.</div>
       <div id="items-list"></div>
       <button class="add-item-btn" onclick="A()">+ Tambah Jenis Barang</button>
     </div>
@@ -674,7 +675,7 @@ function RI() {
       + "<div class='fld'><label>Deskripsi *</label><input type='text' value='" + esc(it.desc) + "' placeholder='Contoh: parfum oud 3 botol, baju gamis...' oninput='UD(" + i + ",this.value)' style='font-size:16px'></div>"
       + "<div class='fld-2'>"
       + "<div class='fld' style='margin:0'><label>" + (u==="pcs"?"Jumlah (pcs)":"Berat (kg)") + " *</label>"
-      + "<input type='number' value='" + (it.qty||"") + "' placeholder='" + (u==="pcs"?"1":"0.5") + "' min='0.1' step='" + (u==="pcs"?"1":"0.1") + "' inputmode='decimal' oninput='UQ(" + i + ",this.value)' style='font-size:16px'></div>"
+      + "<input type='number' value='" + (it.qty||"") + "' placeholder='1' min='1' step='" + (u==="pcs"?"1":"0.1") + "' inputmode='decimal' oninput='UQ(" + i + ",this.value)' style='font-size:16px'></div>"
       + "<div class='fld' style='margin:0'><label>Harga/" + u + "</label>"
       + (it.adminPriced
          ? "<div style='background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:11px;padding:13px;font-size:12px;color:#C9A84C;font-weight:600;text-align:center'>\u2696\uFE0F Ditentukan admin</div></div>"
@@ -909,6 +910,9 @@ function SUB() {
   }
   var valid = items.filter(function(it){ return it.cat && it.qty && parseFloat(it.qty)>0 && it.desc; });
   if (!valid.length) return toast("Isi minimal 1 barang (kategori + berat + deskripsi)","err");
+  // Batasi minimal 1 kg / 1 pcs per barang
+  var under = valid.filter(function(it){ return parseFloat(it.qty) < 1; });
+  if (under.length) return toast("Minimal 1 kg atau 1 pcs per barang. Perbaiki jumlah barang kamu.","err");
   var sTrip = null; for (var i=0;i<trips.length;i++) if (trips[i].id===tripId) { sTrip=trips[i]; break; }
   if (sTrip && sTrip.status!=="open") return toast("Trip ini tidak menerima order baru","err");
   var totGross = valid.reduce(function(s,it){ if(it.cat==="Lainnya"||it.adminPriced) return s; return s + parseFloat(it.qty||0)*(parseFloat(it.rate||0)||rate(it.cat,it.qty)); }, 0);
@@ -1320,7 +1324,7 @@ function RADD(oid,code,route) {
     h += "<div class='item-row' style='margin-bottom:8px'><div class='item-hd'><span class='item-num'>Tambahan " + (i+1) + "</span><div class='item-x' onclick='DADD(" + i + ",\"" + oid + "\",\"" + code + "\",\"" + route + "\")'>\u00D7</div></div>"
       + "<div class='fld' style='margin-bottom:9px'><label>Kategori *</label><div class='pills'>" + ph + "</div></div>"
       + "<div class='fld'><label>Deskripsi *</label><input type='text' value='" + esc(it.desc) + "' placeholder='Jelaskan barang...' oninput='addItms[" + i + "].desc=this.value'></div>"
-      + "<div class='fld'><label>" + (it.type==="pcs"?"Jumlah (pcs)":"Berat (kg)") + " *</label><input type='number' value='" + (it.qty||"") + "' placeholder='0' min='0.1' step='0.1' inputmode='decimal' oninput='addItms[" + i + "].qty=this.value'></div>"
+      + "<div class='fld'><label>" + (it.type==="pcs"?"Jumlah (pcs)":"Berat (kg)") + " *</label><input type='number' value='" + (it.qty||"") + "' placeholder='1' min='1' step='0.1' inputmode='decimal' oninput='addItms[" + i + "].qty=this.value'></div>"
       + "</div>";
   }
   w.innerHTML = h;
