@@ -314,16 +314,17 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
 <div id="p-order" class="page">
   <div class="hdr"><div class="back" onclick="P('home')">&#8592;</div><div class="hdr-title">Order Pengiriman</div></div>
   <div class="bdy">
+    <div style="background:rgba(74,159,212,.08);border:1px solid rgba(74,159,212,.3);border-radius:10px;padding:11px 13px;margin-bottom:14px;font-size:12px;color:#C8C0B0;line-height:1.6">💡 <strong style="color:#7Fc4e8">Penting:</strong> Tulisan <span style="color:#888">abu-abu</span> di dalam kotak isian hanya <strong>contoh</strong> — kamu tetap harus mengetik data kamu sendiri. Semua kolom bertanda <span style="color:#D4504A">*</span> wajib diisi.<br><span style="color:#777">Gray text inside boxes are just examples — you still need to type your own data. Fields marked * are required.</span></div>
     <div class="sec"><div class="sec-lbl">Data Pengirim / Sender Details</div>
-      <div class="fld"><label>Nama Lengkap / Full Name *</label><input type="text" id="f-name" placeholder="Muhammad Ali" autocomplete="name"></div>
-      <div class="fld"><label>Nomor WhatsApp / WhatsApp Number *</label><input type="tel" id="f-phone" placeholder="628123456789" inputmode="numeric"><div class="hint">Wajib kode negara / Must include country code. Cth: 6281234567890</div></div>
+      <div class="fld"><label>Nama Lengkap / Full Name *</label><input type="text" id="f-name" placeholder="cth: Muhammad Ali" autocomplete="name"></div>
+      <div class="fld"><label>Nomor WhatsApp / WhatsApp Number *</label><input type="tel" id="f-phone" placeholder="cth: 628123456789" inputmode="numeric"><div class="hint">Wajib kode negara / Must include country code. Cth: 6281234567890</div></div>
     </div>
     <div class="sec"><div class="sec-lbl">Rute / Route</div>
       <div class="rt"><button class="rt-btn on" id="r-cj" onclick="RT('Cairo → Jakarta',this)">&#127466;&#127468; Cairo&#8594;Jakarta &#127470;&#127465;</button><button class="rt-btn" id="r-jc" onclick="RT('Jakarta → Cairo',this)">&#127470;&#127465; Jakarta&#8594;Cairo &#127466;&#127468;</button></div>
     </div>
     <div id="rcv-cj" class="sec"><div class="sec-lbl">Penerima di Indonesia / Receiver in Indonesia</div>
-      <div class="fld"><label>Nama Penerima / Receiver Name *</label><input type="text" id="f-rcvname" placeholder="Nama penerima di Indonesia"></div>
-      <div class="fld"><label>No. WA Penerima</label><input type="tel" id="f-rcvphone" placeholder="628..." inputmode="numeric"></div>
+      <div class="fld"><label>Nama Penerima / Receiver Name *</label><input type="text" id="f-rcvname" placeholder="cth: Budi Santoso"></div>
+      <div class="fld"><label>No. WA Penerima</label><input type="tel" id="f-rcvphone" placeholder="cth: 628123456789" inputmode="numeric"></div>
       <div class="fld"><label>Alamat Lengkap / Full Address *</label><textarea id="f-addr" placeholder="Jl. ... No. ..., Kelurahan, Kecamatan, Kota, Provinsi"></textarea></div>
       <div class="fld"><label>Jasa Ekspedisi / Courier *</label><select id="f-eksp"><option value="">-- Pilih ekspedisi --</option><option>JNE</option><option>J&amp;T Express</option><option>SiCepat</option><option>Anteraja</option><option>Pos Indonesia</option><option>Ninja Xpress</option><option>Lainnya</option></select></div>
     </div>
@@ -674,8 +675,9 @@ function RI() {
       + (!it.cat ? "<div class='hint' style='color:#D4A017;margin-top:4px'>\u26A0\uFE0F Pilih kategori di atas</div>" : "") + "</div>"
       + "<div class='fld'><label>Deskripsi *</label><input type='text' value='" + esc(it.desc) + "' placeholder='Contoh: parfum oud 3 botol, baju gamis...' oninput='UD(" + i + ",this.value)' style='font-size:16px'></div>"
       + "<div class='fld-2'>"
-      + "<div class='fld' style='margin:0'><label>" + (u==="pcs"?"Jumlah (pcs)":"Berat (kg)") + " *</label>"
-      + "<input type='number' value='" + (it.qty||"") + "' placeholder='1' min='1' step='" + (u==="pcs"?"1":"0.1") + "' inputmode='decimal' oninput='UQ(" + i + ",this.value)' style='font-size:16px'></div>"
+      + "<div class='fld' style='margin:0'><label>" + (u==="pcs"?"Jumlah (pcs)":"Berat (kg)") + " * <span style='color:#D4504A'>(wajib diisi)</span></label>"
+      + "<input type='number' value='" + (it.qty||"") + "' placeholder='" + (u==="pcs"?"ketik jumlah, cth: 2":"ketik berat, cth: 2.5") + "' min='1' step='" + (u==="pcs"?"1":"0.1") + "' inputmode='decimal' oninput='UQ(" + i + ",this.value)' style='font-size:16px'>"
+      + "<div class='hint' style='color:#888;margin-top:3px'>" + (u==="pcs"?"Isi berapa pcs/unit barang ini (min. 1)":"Isi berat barang ini dalam kg (min. 1)") + "</div></div>"
       + "<div class='fld' style='margin:0'><label>Harga/" + u + "</label>"
       + (it.adminPriced
          ? "<div style='background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);border-radius:11px;padding:13px;font-size:12px;color:#C9A84C;font-weight:600;text-align:center'>\u2696\uFE0F Ditentukan admin</div></div>"
