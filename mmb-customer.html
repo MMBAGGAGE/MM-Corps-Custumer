@@ -214,6 +214,7 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
     <div class="svcs-lbl">Our Services</div>
     <div class="card" onclick="P('tnc')"><div class="ci ci-g">&#128203;</div><div class="card-body"><div class="card-badge">&#9888;&#65039; Wajib Baca</div><div class="card-title">Syarat &amp; Ketentuan</div><div class="card-sub">Baca sebelum memesan / Read before ordering</div></div><div class="card-arr">&#8250;</div></div>
     <div class="card" onclick="P('tutorial')"><div class="ci ci-p">&#127891;</div><div class="card-body"><div class="card-badge">Mulai di sini / Start here</div><div class="card-title">Cara Pesan &amp; Tutorial</div><div class="card-sub">Panduan lengkap A-Z / Full guide</div></div><div class="card-arr">&#8250;</div></div>
+    <div class="card" onclick="P('harga')"><div class="ci ci-g">&#128176;</div><div class="card-body"><div class="card-badge">Cek dulu / Check first</div><div class="card-title">Daftar Harga &amp; Kalkulator</div><div class="card-sub">Lihat harga &amp; hitung biaya / See prices &amp; calculate</div></div><div class="card-arr">&#8250;</div></div>
     <div class="card" onclick="P('order')"><div class="ci ci-t">&#128230;</div><div class="card-body"><div class="card-title">Order Pengiriman Bagasi</div><div class="card-sub">Kirim bagasi / Send baggage &middot; Real-time tracking</div></div><div class="card-arr">&#8250;</div></div>
     <div class="card" onclick="P('track')"><div class="ci ci-g">&#128269;</div><div class="card-body"><div class="card-title">Cek Status &amp; Foto Barang</div><div class="card-sub">Lacak &amp; lihat foto / Track &amp; view photos</div></div><div class="card-arr">&#8250;</div></div>
     <div class="card" onclick="P('jadwal')"><div class="ci ci-p">&#128197;</div><div class="card-body"><div class="card-title">Jadwal Trip / Flight Schedule</div><div class="card-sub">Slot &amp; jadwal / Slots &amp; schedule</div></div><div class="card-arr">&#8250;</div></div>
@@ -380,6 +381,56 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
     <div id="t-result"><div class="empty">Masukkan kode order / Enter your order code.</div></div>
   </div>
 </div>
+<div id="p-harga" class="page">
+  <div class="hdr"><div class="back" onclick="P('home')">&#8592;</div><div class="hdr-title">Daftar Harga</div></div>
+  <div class="bdy">
+    <div style="background:rgba(74,159,212,.08);border:1px solid rgba(74,159,212,.3);border-radius:10px;padding:11px 13px;margin-bottom:14px;font-size:12px;color:#C8C0B0;line-height:1.6">&#128161; Pilih rute dulu, lalu lihat harga per jenis barang. Pakai <strong style="color:#7Fc4e8">kalkulator</strong> di bawah untuk menghitung perkiraan biaya tanpa perlu bertanya.<br><span style="color:#777">Pick your route, see prices, then use the calculator to estimate your cost.</span></div>
+
+    <div class="sec"><div class="sec-lbl">Pilih Rute / Route</div>
+      <div class="rt">
+        <button class="rt-btn on" id="hrt-cj" onclick="HSETRUTE('Cairo &#8594; Jakarta')">Cairo &#8594; Jakarta</button>
+        <button class="rt-btn" id="hrt-jc" onclick="HSETRUTE('Jakarta &#8594; Cairo')">Jakarta &#8594; Cairo</button>
+      </div>
+    </div>
+
+    <div class="sec"><div class="sec-lbl">Kalkulator Biaya / Cost Calculator</div>
+      <p style="font-size:12px;color:#666;margin-bottom:10px;line-height:1.5">Hitung perkiraan biaya. Bisa tambah lebih dari 1 jenis barang. / Estimate your cost. You can add more than one item type.</p>
+      <div id="h-items"></div>
+      <button class="add-item-btn" onclick="HADD()">+ Tambah Jenis Barang / Add Item Type</button>
+      <div style="background:linear-gradient(150deg,#0A1B1C,#06100F);border:1px solid rgba(18,144,143,.3);border-radius:14px;padding:15px;margin-top:4px">
+        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#9A9488;margin-bottom:4px">Total Perkiraan Biaya</div>
+        <div id="h-result" style="font-family:var(--serif);font-size:30px;font-weight:700;color:#C9A84C">Rp 0</div>
+        <div id="h-detail" style="font-size:11px;color:#888;margin-top:6px;line-height:1.7">Pilih jenis barang & ketik berat</div>
+      </div>
+      <div style="background:rgba(212,80,74,.06);border:1px solid rgba(212,80,74,.2);border-radius:10px;padding:11px;margin-top:10px;font-size:11px;color:#C8C0B0;line-height:1.5">&#9888;&#65039; Ini <strong>perkiraan</strong>. Harga final dihitung dari <strong>berat aktual</strong> saat barang ditimbang admin, dan belum termasuk bea cukai/pajak.<br><span style="color:#777">This is an estimate. Final price is based on actual weight; customs/tax not included.</span></div>
+    </div>
+
+    <div class="sec"><div class="sec-lbl">Daftar Harga Lengkap / Full Price List</div>
+      <div id="h-list"></div>
+    </div>
+
+    <div class="sec"><div class="sec-lbl">Cara Order / How to Order</div>
+      <div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.25);border-radius:13px;padding:14px 15px">
+        <div style="font-size:12px;color:#C8C0B0;line-height:1.7">
+          <div style="margin-bottom:9px"><strong style="color:#C9A84C">1.</strong> Baca <strong>Syarat &amp; Ketentuan</strong> dulu.</div>
+          <div style="margin-bottom:9px"><strong style="color:#C9A84C">2.</strong> Buka menu <strong>Order Pengiriman Bagasi</strong>, isi data pengirim &amp; penerima (nomor WA wajib pakai kode negara, cth: 62… atau 20…).</div>
+          <div style="margin-bottom:9px"><strong style="color:#C9A84C">3.</strong> Pilih <strong>jadwal trip</strong>, lalu tambahkan barang: pilih jenis, ketik berat/jumlah, isi deskripsi.</div>
+          <div style="margin-bottom:9px"><strong style="color:#C9A84C">4.</strong> Barang jenis <strong>"Lainnya"</strong> (tidak ada di daftar): kirim <strong>foto contoh barang</strong> agar admin bisa menyetujui &amp; menetapkan harga.</div>
+          <div style="margin-bottom:9px"><strong style="color:#C9A84C">5.</strong> Tekan <strong>Kirim Order</strong> → kamu dapat <strong>KODE RESI</strong>. Simpan kode ini.</div>
+          <div style="margin-bottom:9px"><strong style="color:#C9A84C">6.</strong> Konfirmasi ke admin via <strong>WhatsApp</strong>. Admin akan cek &amp; menyetujui barangmu.</div>
+          <div style="margin-bottom:9px"><strong style="color:#C9A84C">7.</strong> Setelah disetujui: <strong>link grup WA</strong> &amp; <strong>alamat drop point</strong> muncul di menu <strong>Cek Status</strong>.</div>
+          <div><strong style="color:#C9A84C">8.</strong> Pantau status &amp; <strong>foto barang (H-1)</strong> di menu Cek Status pakai kode resimu.</div>
+        </div>
+        <div style="font-size:11px;color:#777;margin-top:10px;line-height:1.6">Read T&amp;C → fill the order form → pick a schedule → add items → submit &amp; save your tracking code → confirm via WhatsApp → after approval, the group link &amp; drop point appear in Track → monitor status &amp; H-1 photos.</div>
+      </div>
+    </div>
+
+    <button class="btn btn-gold" style="margin-top:6px" onclick="P('order')">&#128230; Order Sekarang / Order Now &#8594;</button>
+    <button class="btn btn-dark" onclick="P('tutorial')">&#127891; Lihat Tutorial Lengkap</button>
+    <button class="btn btn-dark" onclick="P('tnc')">&#128203; Baca Syarat &amp; Ketentuan</button>
+  </div>
+</div>
+
 <div id="p-jadwal" class="page">
   <div class="hdr"><div class="back" onclick="P('home')">&#8592;</div><div class="hdr-title">Jadwal Trip / Flight Schedule</div></div>
   <div class="bdy"><p style="font-size:13px;color:#555;margin-bottom:14px;line-height:1.5">Jadwal tersedia. Pesan sebelum cut-off. / Available schedules. Order before cut-off.</p><div id="j-list"><div class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
@@ -420,10 +471,21 @@ var DRATES = {Biasa:150000,Skincare:180000,Elektronik:175000,Makanan:145000,Roko
 
 // Helper: ALWAYS prepend a dedicated "__LAIN__" pill (admin-priced free text).
 // Uses a unique key so it never collides with any admin category (even one mislabeled "Lainnya").
+// Susun urutan kategori: "Barang Biasa" paling awal, "__LAIN__" (Lainnya) paling akhir.
 function ensureLainnya(arr){
   arr = Array.isArray(arr) ? arr.slice() : [];
-  for (var i=0;i<arr.length;i++){ if(arr[i] && arr[i].k==="__LAIN__") return arr; }
-  arr.unshift({k:"__LAIN__",l:"Lainnya (barang lain)",t:"kg"});
+  // buang __LAIN__ lama (kalau ada) supaya bisa ditaruh ulang di akhir
+  arr = arr.filter(function(c){ return !(c && c.k==="__LAIN__"); });
+  // pindahkan "Barang Biasa" ke paling depan
+  var bi = -1;
+  for (var i=0;i<arr.length;i++){
+    var c = arr[i]; if(!c) continue;
+    var k = String(c.k||"").toLowerCase(), l = String(c.l||"").toLowerCase();
+    if (k==="biasa" || l==="barang biasa" || l==="biasa"){ bi = i; break; }
+  }
+  if (bi > 0){ var b = arr.splice(bi,1)[0]; arr.unshift(b); }
+  // "Lainnya" selalu di akhir
+  arr.push({k:"__LAIN__", l:"Lainnya (barang lain)", t:"kg"});
   return arr;
 }
 
@@ -574,9 +636,122 @@ function P(id) {
   if (el) { el.className = "page show"; window.scrollTo(0,0); }
   if (id === "order") INIT();
   if (id === "jadwal") JADWAL();
+  if (id === "harga") HARGA();
 }
 
-// ── TNC ──────────────────────────────────────
+// ── DAFTAR HARGA & KALKULATOR ────────────────
+var hRute = "Cairo \u2192 Jakarta";
+var hItems = [{cat:"", qty:""}];
+function HSETRUTE(r) {
+  hRute = r;
+  var cj = E("hrt-cj"), jc = E("hrt-jc");
+  if (cj) cj.className = "rt-btn" + (r.indexOf("Cairo \u2192") === 0 ? " on" : "");
+  if (jc) jc.className = "rt-btn" + (r.indexOf("Jakarta \u2192") === 0 ? " on" : "");
+  HARGA();
+}
+function hCats() {
+  var cats = (CFG.cats || DCATS).filter(function(c){ return !c.routes || c.routes.indexOf(hRute) >= 0; });
+  return ensureLainnya(cats);
+}
+function hFindCat(k) {
+  var cats = hCats();
+  for (var i = 0; i < cats.length; i++) if (cats[i].k === k) return cats[i];
+  return null;
+}
+function HADD() { hItems.push({cat:"", qty:""}); HRENDER(); }
+function HDEL(i) { hItems.splice(i, 1); if (!hItems.length) hItems.push({cat:"", qty:""}); HRENDER(); }
+function HSETCAT(i, v) {
+  hItems[i].cat = v;
+  var c = hFindCat(v);
+  var hint = E("h-unit-" + i);
+  if (hint) hint.textContent = c ? ("Minimal 1 " + (c.t || "kg")) : "Minimal 1";
+  HCALC();
+}
+function HSETQTY(i, v) { hItems[i].qty = v; HCALC(); }
+// Render baris kalkulator (hanya saat tambah/hapus, supaya fokus ketik tidak hilang)
+function HRENDER() {
+  var w = E("h-items"); if (!w) return;
+  var cats = hCats();
+  var opts = "<option value=''>-- Pilih jenis barang --</option>"
+    + cats.map(function(c){ return "<option value='" + c.k + "'>" + c.l + " (per " + (c.t||"kg") + ")</option>"; }).join("");
+  var h = "";
+  for (var i = 0; i < hItems.length; i++) {
+    var it = hItems[i];
+    var c = hFindCat(it.cat);
+    h += "<div class='item-row'>"
+      + "<div class='item-hd'><div class='item-num'>Barang " + (i+1) + "</div>"
+      + (hItems.length > 1 ? "<button class='item-x' onclick='HDEL(" + i + ")'>\u00D7</button>" : "")
+      + "</div>"
+      + "<div class='fld'><label>Jenis Barang</label>"
+      + "<select onchange='HSETCAT(" + i + ",this.value)' style='font-size:16px'>" + opts.replace("value='" + it.cat + "'", "value='" + it.cat + "' selected") + "</select></div>"
+      + "<div class='fld' style='margin-bottom:0'><label>Berat / Jumlah <span style='color:#D4504A'>(wajib)</span></label>"
+      + "<input type='number' value='" + (it.qty||"") + "' placeholder='ketik angka, cth: 3' min='1' step='0.1' inputmode='decimal' oninput='HSETQTY(" + i + ",this.value)' style='font-size:16px'>"
+      + "<div class='hint' id='h-unit-" + i + "'>" + (c ? ("Minimal 1 " + (c.t||"kg")) : "Minimal 1") + "</div></div>"
+      + "</div>";
+  }
+  w.innerHTML = h;
+  HCALC();
+}
+function HARGA() {
+  // Render daftar harga lengkap
+  var cats = hCats();
+  var w = E("h-list");
+  if (w) {
+    var h = "";
+    for (var i = 0; i < cats.length; i++) {
+      var c = cats[i];
+      var isLain = (c.k === "__LAIN__");
+      var u = c.t || "kg";
+      var base = isLain ? null : rate(c.k, 1);
+      var bulk = "";
+      try {
+        if (!isLain && CFG.bulkActive && CFG.bulkActive[c.k] && CFG.bulkMin && CFG.bulkRates) {
+          var bmin = CFG.bulkMin[c.k] || 0, brate = CFG.bulkRates[c.k] || 0;
+          if (bmin > 0 && brate > 0) {
+            bulk = "<div style='font-size:11px;color:#4CAF7D;margin-top:4px'>\uD83C\uDF81 Mulai " + bmin + " " + u + ": " + rp(brate) + " /" + u + "</div>";
+          }
+        }
+      } catch (e) {}
+      h += "<div style='background:linear-gradient(150deg,var(--ink3),var(--ink2));border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px'>"
+        + "<div style='flex:1;min-width:0'><div style='font-size:13px;font-weight:700;color:var(--cream)'>" + c.l + "</div>"
+        + "<div style='font-size:10px;color:#777;margin-top:1px'>dihitung per " + u + "</div>" + bulk + "</div>"
+        + "<div style='text-align:right;flex-shrink:0'>"
+        + (isLain
+            ? "<div style='font-size:11px;color:#C9A84C;font-weight:600'>\u2696\uFE0F Ditentukan<br>admin</div>"
+            : "<div style='font-family:monospace;font-size:15px;font-weight:700;color:#C9A84C'>" + rp(base) + "</div><div style='font-size:9px;color:#777'>/ " + u + "</div>")
+        + "</div></div>";
+    }
+    w.innerHTML = h || "<div class='empty'>Belum ada data harga</div>";
+  }
+  HRENDER();
+}
+// Hitung total semua baris (tanpa render ulang — aman untuk fokus input)
+function HCALC() {
+  var res = E("h-result"), det = E("h-detail");
+  if (!res || !det) return;
+  var tot = 0, lines = [], adaLain = false, adaKurang = false;
+  for (var i = 0; i < hItems.length; i++) {
+    var it = hItems[i];
+    var c = hFindCat(it.cat);
+    var q = parseFloat(it.qty || 0) || 0;
+    if (!c || !q) continue;
+    if (q < 1) { adaKurang = true; continue; }
+    if (c.k === "__LAIN__") {
+      adaLain = true;
+      lines.push(c.l + ": " + q + " " + (c.t||"kg") + " \u00D7 <span style='color:#888'>harga oleh admin</span>");
+      continue;
+    }
+    var r = rate(c.k, q);
+    var sub = q * r;
+    tot += sub;
+    lines.push(c.l + ": " + q + " " + (c.t||"kg") + " \u00D7 " + rp(r) + " = <strong style='color:#C9A84C'>" + rp(sub) + "</strong>");
+  }
+  res.textContent = rp(tot) ;
+  var extra = "";
+  if (adaLain) extra += "<div style='color:#C9A84C;margin-top:5px'>\u2696\uFE0F Barang \"Lainnya\" belum dihitung \u2014 harga ditentukan admin setelah kamu kirim foto & deskripsi saat order.</div>";
+  if (adaKurang) extra += "<div style='color:#D4504A;margin-top:5px'>\u26A0\uFE0F Ada barang di bawah minimal 1 \u2014 belum dihitung.</div>";
+  det.innerHTML = (lines.length ? lines.join("<br>") : "Pilih jenis barang & ketik berat") + extra;
+}
 function TNC(t) {
   E("tnc-cj").style.display = t==="cj" ? "block" : "none";
   E("tnc-jc").style.display = t==="jc" ? "block" : "none";
@@ -622,6 +797,10 @@ function loadCFG() {
     // Re-render if currently on order page
     if (document.getElementById("p-order") && document.getElementById("p-order").className.indexOf("show")>=0) {
       RI(); CALC();
+    }
+    // Re-render daftar harga bila sedang dibuka (config admin bisa datang telat)
+    if (document.getElementById("p-harga") && document.getElementById("p-harga").className.indexOf("show")>=0) {
+      if (typeof HARGA === "function") HARGA();
     }
   });
 }
@@ -1313,8 +1492,7 @@ function ATRK(oid,code,route) { addItms.push({cat:"",qty:"",desc:"",type:"kg"});
 function RADD(oid,code,route) {
   var w = E("ai-list"); if (!w) return;
   var cats = (CFG.cats||DCATS).filter(function(c){ return !c.routes || c.routes.indexOf(route)>=0; });
-  var _hasL=false; for (var _i=0;_i<cats.length;_i++){ if(cats[_i].k==="__LAIN__"){_hasL=true;break;} }
-  if(!_hasL) cats=cats.unshift?cats:cats; if(!_hasL) cats=[{k:"__LAIN__",l:"Lainnya (barang lain)",t:"kg"}].concat(cats);
+  cats = ensureLainnya(cats);
   var h = "";
   for (var i=0;i<addItms.length;i++) {
     var it = addItms[i];
