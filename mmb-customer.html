@@ -334,7 +334,6 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
       <div class="fld"><label>Nama Penerima di Cairo / Cairo Receiver Name *</label><input type="text" id="f-rcvcairo" placeholder="Sesuai petunjuk admin / As per admin"></div>
       <div class="fld"><label>No. WA Penerima Cairo / Cairo Receiver WhatsApp *</label><input type="tel" id="f-rcvcairotel" placeholder="cth: 201234567890 (wajib kode negara)" inputmode="numeric"></div>
       <div class="fld"><label>Domisili di Cairo *</label><select id="f-dom"><option value="">-- Pilih area --</option><option>Darrasah</option><option>Hay Asyir (Nasr City)</option><option>Hay Sabi (Ain Shams)</option><option>Madinat Nasr</option><option>Heliopolis</option><option>Mohandessin</option><option>Zamalek</option><option>Lainnya</option></select></div>
-      <div class="fld"><label>Alamat Detail</label><textarea id="f-cairodet" placeholder="Nomor apartemen, nama gedung, dll..."></textarea></div>
     </div>
     <div class="sec"><div class="sec-lbl">Jadwal Trip / Flight Schedule</div>
       <p style="font-size:12px;color:#888;font-weight:600;margin-bottom:9px">Pilih jadwal / Select schedule *</p>
@@ -1087,7 +1086,7 @@ function SUB() {
     var rcPhone = valPhone(V("f-rcvcairotel"));
     if (!rcPhone) return toast("No. WA penerima Cairo wajib & pakai kode negara (+20/+62)","err");
     if (!dom) return toast("Pilih domisili di Cairo / Select Cairo area","err");
-    rcv = {rcvName:rc, rcvPhone:rcPhone, domisili:dom, cairoDetail:(V("f-cairodet")||"").trim()};
+    rcv = {rcvName:rc, rcvPhone:rcPhone, domisili:dom};
   }
   var valid = items.filter(function(it){ return it.cat && it.qty && parseFloat(it.qty)>0 && it.desc; });
   if (!valid.length) return toast("Isi minimal 1 barang (kategori + berat + deskripsi)","err");
