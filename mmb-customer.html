@@ -113,7 +113,7 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
 .conf-icon{width:68px;height:68px;border-radius:50%;background:radial-gradient(circle,rgba(76,175,125,.2),rgba(76,175,125,.06));border:1px solid rgba(76,175,125,.3);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;box-shadow:0 0 30px -8px rgba(76,175,125,.4)}
 .code-box{background:linear-gradient(150deg,var(--ink3),var(--ink2));border:1px solid var(--line);border-radius:16px;padding:20px;margin:14px 0;box-shadow:var(--shadow),var(--rim)}
 .code-lbl{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--cream3);margin-bottom:7px}
-.code-val{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--gold);letter-spacing:4px}
+.code-val{font-family:var(--mono);font-size:21px;font-weight:700;color:var(--gold);letter-spacing:1.5px;word-break:break-all;line-height:1.35}
 .code-hint{font-size:11px;color:var(--muted);margin-top:6px}
 .info-box{background:linear-gradient(150deg,var(--ink3),var(--ink2));border:1px solid var(--line);border-radius:13px;padding:14px 15px;margin-bottom:10px;text-align:left;box-shadow:var(--rim)}
 .info-ttl{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:8px}
@@ -297,7 +297,7 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
 
     <div class="tut-step"><div class="tut-num">7</div><div class="tut-body"><div class="tut-title">Barang Tidak Ada di Daftar? Pilih &quot;Lainnya&quot;</div><div class="tut-desc">Kalau jenis barangmu <strong>tidak ada</strong> di daftar, pilih kategori <strong>&quot;Lainnya&quot;</strong> (paling bawah).<br>&bull; Isi deskripsi barangnya<br>&bull; <strong style="color:#7Fc4e8">&#128248; WAJIB kirim foto contoh barang</strong> &mdash; ketuk kotak upload foto<br>&bull; Kolom harga akan tertulis <strong>&quot;&#9878;&#65039; Ditentukan admin&quot;</strong><br>Admin akan memeriksa fotomu, memutuskan <strong>disetujui atau tidak</strong>, lalu menetapkan harganya. <span style="color:#666">Item not listed? Pick &quot;Lainnya&quot;, add description &amp; a sample photo. Admin decides approval &amp; price.</span></div></div></div>
 
-    <div class="tut-step"><div class="tut-num">8</div><div class="tut-body"><div class="tut-title">Kirim Order &amp; Simpan Kode Resi</div><div class="tut-desc">Punya <strong>kode referral</strong>? Isi dulu untuk dapat diskon. Lalu tekan <strong>Kirim Order</strong>.<br>Kamu akan dapat <strong>KODE RESI</strong> (cth: <strong>MMB01072600001</strong>).<br><strong style="color:#D4504A">&#9888;&#65039; WAJIB DISIMPAN!</strong> Screenshot atau tekan tombol <strong>Salin Kode</strong>. Tanpa kode ini kamu tidak bisa melacak barangmu. <span style="color:#666">Submit &amp; save your tracking code &mdash; you need it to track.</span></div></div></div>
+    <div class="tut-step"><div class="tut-num">8</div><div class="tut-body"><div class="tut-title">Kirim Order &amp; Simpan Kode Resi</div><div class="tut-desc">Punya <strong>kode referral</strong>? Isi dulu untuk dapat diskon. Lalu tekan <strong>Kirim Order</strong>.<br>Kamu akan dapat <strong>KODE RESI</strong> (cth: <strong>MMB01072600001-A7K9</strong>).<br><span style="color:#888">&#128274; Kode punya <strong>4 karakter acak di belakang</strong> (setelah tanda &quot;-&quot;) sebagai pengaman, agar order kamu tidak bisa diintip orang lain. Ketik <strong>persis</strong> termasuk tanda hubungnya.</span><br><strong style="color:#D4504A">&#9888;&#65039; WAJIB DISIMPAN!</strong> Screenshot atau tekan tombol <strong>Salin Kode</strong>. Tanpa kode ini kamu tidak bisa melacak barangmu. <span style="color:#666">Submit &amp; save your tracking code &mdash; you need it to track.</span></div></div></div>
 
     <div style="background:rgba(76,175,125,.07);border:1px solid rgba(76,175,125,.25);border-radius:9px;padding:8px 11px;margin:16px 0 10px"><div style="font-size:11px;font-weight:800;color:#4CAF7D;letter-spacing:1px">TAHAP 3 &mdash; KONFIRMASI &amp; PERSETUJUAN</div></div>
 
@@ -412,7 +412,7 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
 <div id="p-track" class="page">
   <div class="hdr"><div class="back" onclick="P('home')">&#8592;</div><div class="hdr-title">Cek Status Barang</div></div>
   <div class="bdy">
-    <div class="search-box"><input type="text" id="t-input" placeholder="KODE ORDER / CODE (cth MMB27062600001)" maxlength="20" oninput="this.value=this.value.toUpperCase()"><button class="search-btn" onclick="TRACK()">Cari</button></div>
+    <div class="search-box"><input type="text" id="t-input" placeholder="KODE ORDER / CODE (cth MMB01072600001-A7K9)" maxlength="20" oninput="this.value=this.value.toUpperCase()"><button class="search-btn" onclick="TRACK()">Cari</button></div>
     <div id="t-result"><div class="empty">Masukkan kode order / Enter your order code.</div></div>
   </div>
 </div>
@@ -579,6 +579,17 @@ function fsAdd(col, data, cb) {
   getToken(function(tok){
     fetch(FSB + "/" + col, {
       method:"POST", headers: authHeaders(tok, true),
+      body: JSON.stringify({fields: toFS(data)})
+    }).then(function(r){ return r.json(); }).then(cb).catch(function(){ cb(null); });
+  });
+}
+// Buat dokumen dengan ID yang kita tentukan (dipakai agar kode resi = document ID).
+// Ini membuat tracking bisa pakai GET langsung, sehingga izin "list" bisa dicabut
+// dari customer -> data customer lain tidak bisa diunduh massal.
+function fsSet(docPath, data, cb) {
+  getToken(function(tok){
+    fetch(FSB + "/" + docPath, {
+      method:"PATCH", headers: authHeaders(tok, true),
       body: JSON.stringify({fields: toFS(data)})
     }).then(function(r){ return r.json(); }).then(cb).catch(function(){ cb(null); });
   });
@@ -1142,6 +1153,21 @@ function getNextSeq(cb) {
 }
 
 // ── SUBMIT ───────────────────────────────────
+// 4 karakter acak untuk kode resi — mencegah orang menebak kode order orang lain.
+// Charset sengaja TANPA I, O, 0, 1 (mudah tertukar saat diketik/dibaca).
+function randSuffix() {
+  var CS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 32 karakter
+  var out = "";
+  try {
+    var a = new Uint8Array(4);
+    (window.crypto || window.msCrypto).getRandomValues(a);
+    for (var i = 0; i < 4; i++) out += CS.charAt(a[i] % CS.length);
+    if (out.length === 4) return out;
+  } catch (e) {}
+  out = "";
+  for (var j = 0; j < 4; j++) out += CS.charAt(Math.floor(Math.random() * CS.length));
+  return out;
+}
 function SUB() {
   var btn = E("sub-btn");
   if (window._submitting) return;
@@ -1209,9 +1235,9 @@ function SUB() {
     var dd = ("0"+d.getDate()).slice(-2);
     var mm = ("0"+(d.getMonth()+1)).slice(-2);
     var yy = (""+d.getFullYear()).slice(-2);
-    var code = "MMB" + dd + mm + yy + ("00000"+seq).slice(-5);
+    var code = "MMB" + dd + mm + yy + ("00000"+seq).slice(-5) + "-" + randSuffix();
     ord.code = code;
-    fsAdd("orders", ord, function(res){
+    fsSet("orders/" + code, ord, function(res){
     if (!res || !res.name) {
       btn.disabled = false; btn.textContent = "\uD83D\uDCE6 Kirim Order \u2192"; window._submitting = false;
       // Tampilkan error asli dari Firestore supaya masalah bisa didiagnosis
@@ -1219,13 +1245,13 @@ function SUB() {
       try { em = (res && res.error && (res.error.status || res.error.message)) ? (res.error.status || "") + " " + (res.error.message || "") : ""; } catch(e){}
       if (em) {
         toast("Gagal: " + em.slice(0,90), "err");
-        try { console.error("FSADD ERROR:", JSON.stringify(res)); } catch(e){}
+        try { console.error("FSSET ERROR:", JSON.stringify(res)); } catch(e){}
       } else {
         toast("Gagal kirim. Cek koneksi & coba lagi.","err");
       }
       return;
     }
-    var docId = res.name.split("/").pop();
+    var docId = code;
     // TAMPILKAN RESI SEGERA — kode sudah tersimpan di dokumen (ord.code), tidak perlu tunggu patch/referral
     lastOrd = Object.assign({}, ord, {code:code, id:docId});
     E("c-code").textContent = code;
@@ -1405,12 +1431,14 @@ function TRACK() {
   // Sinkronkan input dengan versi bersih supaya user lihat kode yang dipakai
   if (E("t-input")) E("t-input").value = code;
   el.innerHTML = "<div class='loader'><div class='dot'></div><div class='dot'></div><div class='dot'></div></div>";
-  fsQuery("orders", "code", code, function(docs){
-    if (!docs || !docs.length) {
-      el.innerHTML = "<div class='empty'><div style='font-size:32px;margin-bottom:8px'>\uD83D\uDD0D</div><div style='font-size:15px;font-weight:700;margin-bottom:5px'>Tidak Ditemukan</div><div style='font-size:13px;color:#555;line-height:1.5'>Kode <strong>" + code + "</strong> tidak ditemukan.</div></div><button class='btn btn-wa' onclick=\"WA('Halo Admin, tanya status order saya')\">\uD83D\uDCAC Tanya Admin</button>";
+  // Ambil langsung berdasarkan kode (kode resi = document ID).
+  // Tidak memakai query, sehingga izin "list" bisa dicabut dari customer.
+  fsGet("orders/" + code, function(d){
+    if (!d || !d.fields) {
+      el.innerHTML = "<div class='empty'><div style='font-size:32px;margin-bottom:8px'>\uD83D\uDD0D</div><div style='font-size:15px;font-weight:700;margin-bottom:5px'>Tidak Ditemukan</div><div style='font-size:13px;color:#555;line-height:1.5'>Kode <strong>" + code + "</strong> tidak ditemukan. Pastikan kode diketik persis seperti yang kamu terima.</div></div><button class='btn btn-wa' onclick=\"WA('Halo Admin, tanya status order saya. Kode: " + code + "')\">\uD83D\uDCAC Tanya Admin</button>";
       return;
     }
-    var o = docs[0].data; o.id = docs[0].id;
+    var o = fromFS(d.fields); o.id = code;
     window._trackedOrder = o;
     RTRACK(o, el);
   });
