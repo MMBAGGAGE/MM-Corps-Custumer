@@ -1371,20 +1371,108 @@ function _fallbackCopyAddr(addr) {
 }
 
 // ── DOWNLOAD FOTO ────────────────────────────
-function DLFOTO(url, fname) {
+// ═══ SISTEM FOTO (lihat & simpan) ═══
+// Masalah lama: <a download> DIABAIKAN iOS Safari, dan window.open('data:image/...')
+// DIBLOKIR browser modern. Menempel base64 400KB ke onclick juga memecah JS.
+// Solusi: ambil foto dari data order lewat indeks, tampilkan di modal,
+// simpan lewat Blob (+ Share Sheet di iOS).
+function fotoDataUrlToBlob(dataUrl) {
   try {
-    var a = document.createElement("a");
-    a.href = url;
-    a.download = (fname || "foto-mmbaggage") + ".jpg";
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function(){ document.body.removeChild(a); }, 500);
-    toast("Foto diunduh \u2705 / Photo downloaded","ok");
-  } catch(e) {
-    // Fallback: buka di tab baru biar bisa long-press save
-    window.open(url, "_blank");
-    toast("Tekan & tahan foto untuk simpan / Long-press to save","info");
+    if (typeof dataUrl !== "string" || dataUrl.indexOf("data:") !== 0) return null;
+    var i = dataUrl.indexOf(",");
+    if (i < 0) return null;
+    var head = dataUrl.slice(0, i);
+    if (head.indexOf(";base64") < 0) return null;
+    var b64 = dataUrl.slice(i+1);
+    if (!b64) return null;
+    var m = head.match(/:(.*?);/);
+    var mime = m ? m[1] : "image/jpeg";
+    var bin = atob(b64);
+    var u8 = new Uint8Array(bin.length);
+    for (var k=0;k<bin.length;k++) u8[k] = bin.charCodeAt(k);
+    return new Blob([u8], {type:mime});
+  } catch(e) { return null; }
+}
+function FOTOSIMPAN(url, fname) {
+  if (!url) { toast("Foto tidak tersedia","err"); return; }
+  var blob = (url.indexOf("data:")===0) ? fotoDataUrlToBlob(url) : null;
+  if (!blob) { toast("Tekan & tahan foto untuk simpan / Long-press to save","info"); return; }
+  var isVid = blob.type.indexOf("video") >= 0;
+  var nama = (fname||"foto-mmbaggage").replace(/[^A-Za-z0-9_-]/g,"_") + (isVid?".mp4":".jpg");
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+  if (isIOS && navigator.canShare) {
+    try {
+      var file = new File([blob], nama, {type:blob.type});
+      if (navigator.canShare({files:[file]})) {
+        navigator.share({files:[file], title:nama}).then(function(){
+          toast("Pilih \"Simpan Gambar\" \u2705","ok");
+        }).catch(function(){});
+        return;
+      }
+    } catch(e) {}
   }
+  try {
+    var u = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = u; a.download = nama;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ try{document.body.removeChild(a);}catch(e){} URL.revokeObjectURL(u); }, 900);
+    toast("Foto disimpan \u2705","ok");
+  } catch(e) { toast("Gagal simpan: "+e.message,"err"); }
+}
+// Penampil foto layar penuh (pengganti window.open yang diblokir)
+var _fotoAktif = null;
+function FOTOBUKA(i) {
+  var o = window._trackedOrder;
+  var p = (o && o.photos && o.photos[i]) ? o.photos[i] : null;
+  if (!p || !p.url) { toast("Foto tidak ditemukan","err"); return; }
+  var nama = (o.code || "foto") + "_" + (i+1);
+  _fotoAktif = {url:p.url, nama:nama};
+  var isVideo = (p.mediaType === "video");
+  var m = E("foto-viewer");
+  if (!m) {
+    m = document.createElement("div");
+    m.id = "foto-viewer";
+    m.style.cssText = "position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;gap:12px";
+    document.body.appendChild(m);
+  }
+  var media = isVideo
+    ? "<video src='" + p.url + "' controls playsinline autoplay style='max-width:100%;max-height:70vh;border-radius:10px;background:#000'></video>"
+    : "<img src='" + p.url + "' style='max-width:100%;max-height:70vh;object-fit:contain;border-radius:10px'>";
+  m.innerHTML = media
+    + "<div style='font-size:12px;color:#C8C0B0;text-align:center;max-width:90%'>" + esc(p.ownerName||"") + (p.note?(" \u00B7 " + esc(p.note)):"") + "</div>"
+    + "<div style='display:flex;gap:9px;width:100%;max-width:340px'>"
+    + "<button onclick='FOTOSIMPANAKTIF()' style='flex:1;background:linear-gradient(135deg,#8B6914,#E6C868);color:#070708;border:none;border-radius:11px;padding:13px;font-size:14px;font-weight:800;cursor:pointer'>\u2B07\uFE0F Simpan</button>"
+    + "<button onclick='FOTOTUTUP()' style='flex:1;background:#1C1C22;color:#C8C0B0;border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:13px;font-size:14px;font-weight:700;cursor:pointer'>Tutup</button>"
+    + "</div>";
+  m.style.display = "flex";
+}
+function FOTOSIMPANAKTIF(){ if (_fotoAktif) FOTOSIMPAN(_fotoAktif.url, _fotoAktif.nama); }
+function FOTOTUTUP(){ var m = E("foto-viewer"); if (m) { m.innerHTML = ""; m.style.display = "none"; } _fotoAktif = null; }
+// Foto "Paket Tanpa Nama" (dari trip)
+function FOTOBUKAX(i) {
+  var arr = window._unknownPhotos || [];
+  var p = arr[i];
+  if (!p || !p.url) { toast("Foto tidak ditemukan","err"); return; }
+  _fotoAktif = {url:p.url, nama:"tanpanama_" + (i+1)};
+  var isVideo = (p.mediaType === "video");
+  var m = E("foto-viewer");
+  if (!m) {
+    m = document.createElement("div");
+    m.id = "foto-viewer";
+    m.style.cssText = "position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;gap:12px";
+    document.body.appendChild(m);
+  }
+  var media = isVideo
+    ? "<video src='" + p.url + "' controls playsinline autoplay style='max-width:100%;max-height:70vh;border-radius:10px;background:#000'></video>"
+    : "<img src='" + p.url + "' style='max-width:100%;max-height:70vh;object-fit:contain;border-radius:10px'>";
+  m.innerHTML = media
+    + "<div style='font-size:12px;color:#C8C0B0;text-align:center;max-width:90%'>Paket tanpa nama #" + (i+1) + (p.note?(" \u00B7 " + esc(p.note)):"") + "</div>"
+    + "<div style='display:flex;gap:9px;width:100%;max-width:340px'>"
+    + "<button onclick='FOTOSIMPANAKTIF()' style='flex:1;background:linear-gradient(135deg,#8B6914,#E6C868);color:#070708;border:none;border-radius:11px;padding:13px;font-size:14px;font-weight:800;cursor:pointer'>\u2B07\uFE0F Simpan</button>"
+    + "<button onclick='FOTOTUTUP()' style='flex:1;background:#1C1C22;color:#C8C0B0;border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:13px;font-size:14px;font-weight:700;cursor:pointer'>Tutup</button>"
+    + "</div>";
+  m.style.display = "flex";
 }
 
 // ── COPY CODE ────────────────────────────────
@@ -1484,13 +1572,18 @@ function RTRACK(o, el) {
   }
   var phH = "";
   if (o.photos && o.photos.length) {
-    phH = "<div style='margin-bottom:11px'><div class='id-ttl'>\uD83D\uDCF8 Foto & Video Barang / Photos & Videos</div><div class='pgrid'>";
+    phH = "<div style='margin-bottom:11px'><div class='id-ttl'>\uD83D\uDCF8 Foto & Video Barang / Photos & Videos</div>"
+      + "<div style='font-size:11px;color:#666;margin-bottom:6px'>Ketuk foto untuk lihat besar & simpan / Tap a photo to view &amp; save</div>"
+      + "<div class='pgrid'>";
     for (var i=0;i<o.photos.length;i++) {
       var p = o.photos[i];
+      // PENTING: jangan tempel base64 ke onclick — cukup kirim indeksnya.
       if (p.mediaType === "video") {
-        phH += "<div class='pi'><video src='" + p.url + "' controls playsinline style='width:100%;aspect-ratio:4/3;object-fit:cover;display:block' onerror=\"this.parentElement.style.display='none'\"></video><div class='pi-cap'>\uD83C\uDFAC " + (p.ownerName||"") + " <span onclick='DLFOTO(\"" + p.url + "\",\"" + (o.code||"foto") + "_" + i + "\")' style='color:#C9A84C;cursor:pointer;font-weight:700'>\u2B07\uFE0F</span></div></div>";
+        phH += "<div class='pi'><video src='" + p.url + "' controls playsinline style='width:100%;aspect-ratio:4/3;object-fit:cover;display:block' onerror=\"this.parentElement.style.display='none'\"></video>"
+          + "<div class='pi-cap'>\uD83C\uDFAC " + esc(p.ownerName||"") + " <span onclick='FOTOBUKA(" + i + ")' style='color:#C9A84C;cursor:pointer;font-weight:700'>\u2B07\uFE0F Simpan</span></div></div>";
       } else {
-        phH += "<div class='pi'><img src='" + p.url + "' loading='lazy' alt='Foto barang' onerror=\"this.parentElement.style.display='none'\"><div class='pi-cap'>" + (p.ownerName||"") + " <span onclick='DLFOTO(\"" + p.url + "\",\"" + (o.code||"foto") + "_" + i + "\")' style='color:#C9A84C;cursor:pointer;font-weight:700'>\u2B07\uFE0F Download</span></div></div>";
+        phH += "<div class='pi'><img src='" + p.url + "' loading='lazy' alt='Foto barang' onclick='FOTOBUKA(" + i + ")' style='cursor:pointer' onerror=\"this.parentElement.style.display='none'\">"
+          + "<div class='pi-cap'>" + esc(p.ownerName||"") + " <span onclick='FOTOBUKA(" + i + ")' style='color:#C9A84C;cursor:pointer;font-weight:700'>\u2B07\uFE0F Simpan</span></div></div>";
       }
     }
     phH += "</div></div>";
@@ -1597,15 +1690,18 @@ function RTRACK(o, el) {
       }
       var box = E("tanpa-nama-box");
       if (!box || !trip || !trip.unknownPhotos || !trip.unknownPhotos.length) return;
+      window._unknownPhotos = trip.unknownPhotos;   // simpan di cache, jangan tempel ke onclick
       var h = "<div style='margin:11px 0'><div class='id-ttl'>\uD83D\uDCE6 Paket Tanpa Nama / Unlabeled Packages</div>"
-        + "<div style='font-size:11px;color:#888;margin-bottom:8px;line-height:1.5'>Foto paket yang namanya tidak tercantum/disensor. Cek apakah ada barangmu di sini.<br><span style='color:#666'>Photos of packages without clear names. Check if yours is here.</span></div>"
+        + "<div style='font-size:11px;color:#888;margin-bottom:8px;line-height:1.5'>Foto paket yang namanya tidak tercantum/disensor. Cek apakah ada barangmu di sini. Ketuk untuk lihat besar &amp; simpan.<br><span style='color:#666'>Photos of packages without clear names. Tap to view &amp; save.</span></div>"
         + "<div class='pgrid'>";
       for (var pi=0; pi<trip.unknownPhotos.length; pi++) {
         var up = trip.unknownPhotos[pi];
         if (up.mediaType === "video") {
-          h += "<div class='pi'><video src='" + up.url + "' controls playsinline style='width:100%;aspect-ratio:4/3;object-fit:cover;display:block'></video><div class='pi-cap'>\uD83C\uDFAC <span onclick='DLFOTO(\"" + up.url + "\",\"tanpanama_" + pi + "\")' style='color:#C9A84C;cursor:pointer;font-weight:700'>\u2B07\uFE0F</span></div></div>";
+          h += "<div class='pi'><video src='" + up.url + "' controls playsinline style='width:100%;aspect-ratio:4/3;object-fit:cover;display:block'></video>"
+            + "<div class='pi-cap'>\uD83C\uDFAC <span onclick='FOTOBUKAX(" + pi + ")' style='color:#C9A84C;cursor:pointer;font-weight:700'>\u2B07\uFE0F Simpan</span></div></div>";
         } else {
-          h += "<div class='pi'><img src='" + up.url + "' loading='lazy' alt='Paket tanpa nama'><div class='pi-cap'><span onclick='DLFOTO(\"" + up.url + "\",\"tanpanama_" + pi + "\")' style='color:#C9A84C;cursor:pointer;font-weight:700'>\u2B07\uFE0F Download</span></div></div>";
+          h += "<div class='pi'><img src='" + up.url + "' loading='lazy' alt='Paket tanpa nama' onclick='FOTOBUKAX(" + pi + ")' style='cursor:pointer'>"
+            + "<div class='pi-cap'><span onclick='FOTOBUKAX(" + pi + ")' style='color:#C9A84C;cursor:pointer;font-weight:700'>\u2B07\uFE0F Simpan</span></div></div>";
         }
       }
       h += "</div></div>";
