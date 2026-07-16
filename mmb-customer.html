@@ -1214,7 +1214,16 @@ function SUB() {
     fsAdd("orders", ord, function(res){
     if (!res || !res.name) {
       btn.disabled = false; btn.textContent = "\uD83D\uDCE6 Kirim Order \u2192"; window._submitting = false;
-      toast("Gagal kirim. Cek koneksi & coba lagi.","err"); return;
+      // Tampilkan error asli dari Firestore supaya masalah bisa didiagnosis
+      var em = "";
+      try { em = (res && res.error && (res.error.status || res.error.message)) ? (res.error.status || "") + " " + (res.error.message || "") : ""; } catch(e){}
+      if (em) {
+        toast("Gagal: " + em.slice(0,90), "err");
+        try { console.error("FSADD ERROR:", JSON.stringify(res)); } catch(e){}
+      } else {
+        toast("Gagal kirim. Cek koneksi & coba lagi.","err");
+      }
+      return;
     }
     var docId = res.name.split("/").pop();
     // TAMPILKAN RESI SEGERA — kode sudah tersimpan di dokumen (ord.code), tidak perlu tunggu patch/referral
