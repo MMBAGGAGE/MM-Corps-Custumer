@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#0A0A0A">
 <title>M.M Baggage</title>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:none;touch-action:manipulation}
 :root{
@@ -20,7 +22,7 @@
 }
 html,body{height:100%;background:var(--ink);color:var(--cream);font-family:var(--sans);max-width:480px;margin:0 auto;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),transparent 60%),radial-gradient(90% 50% at 100% 100%,rgba(18,144,143,.07),transparent 60%);background-attachment:scroll}
-#splash{position:fixed;inset:0;z-index:9999;background:radial-gradient(120% 80% at 50% 30%,#16130C,var(--ink) 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:splashFade .5s ease 1.8s forwards;pointer-events:none}
+#splash{position:fixed;inset:0;z-index:9999;background:radial-gradient(120% 80% at 50% 30%,#16130C,var(--ink) 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:splashFade .5s ease 1.0s forwards;pointer-events:none}
 @keyframes splashFade{to{opacity:0;visibility:hidden}}
 .sp-logo{width:104px;height:104px;object-fit:contain;margin-bottom:18px;animation:spUp .6s cubic-bezier(.2,.7,.2,1);filter:drop-shadow(0 6px 18px rgba(201,168,76,.25))}
 @keyframes spUp{from{opacity:0;transform:translateY(22px) scale(.94)}to{opacity:1;transform:none}}
@@ -748,6 +750,33 @@ function P(id) {
 // ═══════════════════════════════════════════
 var evAktif = null;      // event yang sedang diisi
 var evFiles = {};        // {fieldKey: [dataUrl,...]}
+var evPred = {};         // {fieldKey: {winner:'A'|'seri'|'B', a:'', b:''}}  — prediksi (poin 1)
+// Target waktu deadline: dukung "YYYY-MM-DDTHH:MM" atau "YYYY-MM-DD" (akhir hari).
+function evDeadlineMs(dl){
+  if(!dl) return 0;
+  var s = (dl.indexOf("T")>=0) ? dl : (dl + "T23:59:59");
+  var t = new Date(s).getTime();
+  return isNaN(t) ? 0 : t;
+}
+// String hitung mundur singkat
+function evCountdownStr(ms){
+  var d = ms - Date.now();
+  if (d <= 0) return "\u23F0 Waktu habis";
+  var s = Math.floor(d/1000), hari=Math.floor(s/86400), jam=Math.floor((s%86400)/3600), mnt=Math.floor((s%3600)/60), dtk=s%60;
+  if (hari>0) return "\u23F3 " + hari + " hari " + jam + " jam lagi";
+  if (jam>0)  return "\u23F3 " + jam + " jam " + mnt + " mnt lagi";
+  if (mnt>0)  return "\u23F3 " + mnt + " mnt " + dtk + " dtk lagi";
+  return "\u23F3 " + dtk + " detik lagi";
+}
+// Timer global: perbarui semua elemen [data-dl] tiap detik (ringan).
+function evTickCountdowns(){
+  var els = document.querySelectorAll("[data-dl]");
+  for (var i=0;i<els.length;i++){
+    var ms = parseInt(els[i].getAttribute("data-dl")) || 0;
+    els[i].textContent = evCountdownStr(ms);
+  }
+}
+if (!window._evTimer) { window._evTimer = setInterval(function(){ try{ evTickCountdowns(); }catch(e){} }, 1000); }
 
 function EVENT() {
   var w = E("ev-list"); if (!w) return;
@@ -760,12 +789,17 @@ function EVENT() {
     for (var i=0;i<list.length;i++) {
       var e = list[i];
       window["_ev_"+e.id] = e;
-      h += "<div class='card' onclick=\"EVBUKA('" + e.id + "')\" style='border-color:rgba(232,146,74,.35)'>"
+      var ms = evDeadlineMs(e.deadline);
+      h += "<div class='card' onclick=\"EVBUKA('" + e.id + "')\" style='border-color:rgba(232,146,74,.35);flex-direction:column;align-items:stretch;gap:0;padding:0;overflow:hidden'>";
+      if (e.poster) h += "<img src='" + e.poster + "' style='width:100%;max-height:150px;object-fit:cover;display:block'>";
+      h += "<div style='display:flex;align-items:center;gap:13px;padding:15px 16px'>"
         + "<div class='ci ci-p'>\uD83C\uDFC6</div><div class='card-body'>"
         + (e.prize ? "<div class='card-badge' style='background:rgba(232,146,74,.15);color:#E8924A'>\uD83C\uDF81 " + esc(e.prize) + "</div>" : "")
+        + (e.winnerAnnounced ? "<div class='card-badge' style='background:rgba(232,190,80,.15);color:#E8BE50'>\uD83C\uDFC6 Pemenang: " + esc(e.winnerName||"-") + "</div>" : "")
         + "<div class='card-title'>" + esc(e.title||"Event") + "</div>"
-        + "<div class='card-sub'>" + esc((e.desc||"").slice(0,60)) + (e.deadline?(" \u00B7 s/d " + tgl(e.deadline)):"") + "</div>"
-        + "</div><div class='card-arr'>\u203A</div></div>";
+        + "<div class='card-sub'>" + esc((e.desc||"").slice(0,60)) + "</div>"
+        + (ms ? "<div class='card-sub' style='color:#E8924A;font-weight:700;margin-top:3px' data-dl='" + ms + "'>" + esc(evCountdownStr(ms)) + "</div>" : "")
+        + "</div><div class='card-arr'>\u203A</div></div></div>";
     }
     w.innerHTML = h;
   });
@@ -773,13 +807,17 @@ function EVENT() {
 function EVBUKA(id) {
   var e = window["_ev_"+id];
   if (!e) { toast("Event tidak ditemukan","err"); return; }
-  evAktif = e; evFiles = {};
+  evAktif = e; evFiles = {}; evPred = {};
   S("ef-title", esc(e.title||"Ikut Event"));
+  var ms = evDeadlineMs(e.deadline);
+  var habis = ms && ms <= Date.now();
   var info = "<div style='background:linear-gradient(150deg,#1B1408,#0D0D10);border:1px solid rgba(232,146,74,.3);border-radius:14px;padding:15px;margin-bottom:14px'>"
+    + (e.poster ? "<img src='" + e.poster + "' style='width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:block'>" : "")
     + "<div style='font-size:16px;font-weight:800;color:#E8924A;margin-bottom:6px'>\uD83C\uDFC6 " + esc(e.title||"") + "</div>"
     + (e.prize ? "<div style='font-size:13px;color:#C9A84C;font-weight:700;margin-bottom:6px'>\uD83C\uDF81 Hadiah: " + esc(e.prize) + "</div>" : "")
+    + (e.winnerAnnounced ? "<div style='background:rgba(232,190,80,.12);border:1px solid rgba(232,190,80,.35);border-radius:9px;padding:9px 11px;margin-bottom:8px;font-size:13px;color:#E8BE50;font-weight:700'>\uD83C\uDFC6 Pemenang: " + esc(e.winnerName||"-") + (e.winnerNote?("<div style='font-size:11px;color:#C8C0B0;font-weight:500;margin-top:3px'>"+esc(e.winnerNote)+"</div>"):"") + "</div>" : "")
     + "<div style='font-size:12px;color:#C8C0B0;line-height:1.7;white-space:pre-wrap'>" + esc(e.desc||"") + "</div>"
-    + (e.deadline ? "<div style='font-size:11px;color:#888;margin-top:8px'>\u23F0 Batas: " + tgl(e.deadline) + "</div>" : "")
+    + (ms ? "<div style='font-size:12px;font-weight:700;color:" + (habis?"#D4504A":"#E8924A") + ";margin-top:9px' data-dl='" + ms + "'>" + esc(evCountdownStr(ms)) + "</div><div style='font-size:10px;color:#666;margin-top:2px'>Batas: " + tgl((e.deadline||"").slice(0,10)) + "</div>" : "")
     + "</div>";
   S("ef-info", info);
   EVRENDER();
@@ -813,6 +851,23 @@ function EVRENDER() {
       h += "<input type='number' id='eff-" + f.key + "' placeholder='" + esc(f.placeholder||"0") + "' inputmode='numeric' style='width:100%;background:var(--ink2);border:1px solid var(--line);border-radius:11px;padding:13px;font-size:16px;color:var(--cream);outline:none'>";
     } else if (f.type === "textarea") {
       h += "<textarea id='eff-" + f.key + "' placeholder='" + esc(f.placeholder||"") + "' style='width:100%;background:var(--ink2);border:1px solid var(--line);border-radius:11px;padding:13px;font-size:16px;color:var(--cream);outline:none;min-height:80px;resize:none'></textarea>";
+    } else if (f.type === "prediksi") {
+      if (!evPred[f.key]) evPred[f.key] = {winner:"", a:"", b:""};
+      var pr = evPred[f.key];
+      var ta = f.teamA || "Tim A", tb = f.teamB || "Tim B";
+      var mkb = function(val,label){
+        var on = pr.winner===val;
+        return "<button type='button' onclick=\"EVPRED('" + f.key + "','" + val + "')\" style='flex:1;padding:11px 5px;border-radius:10px;border:1px solid " + (on?"#E8924A":"var(--line)") + ";background:" + (on?"rgba(232,146,74,.18)":"var(--ink2)") + ";color:" + (on?"#E8924A":"var(--cream)") + ";font-size:13px;font-weight:700;cursor:pointer'>" + esc(label) + "</button>";
+      };
+      h += "<div style='font-size:11px;color:#888;margin-bottom:6px'>Pilih pemenang:</div>"
+        + "<div style='display:flex;gap:6px;margin-bottom:" + (f.withScore!==false?"10px":"2px") + "'>" + mkb("A",ta) + mkb("seri","Seri") + mkb("B",tb) + "</div>";
+      if (f.withScore !== false) {
+        h += "<div style='font-size:11px;color:#888;margin-bottom:6px'>Prediksi skor:</div><div style='display:flex;align-items:flex-end;gap:8px'>"
+          + "<div style='flex:1'><div style='font-size:10px;color:#888;margin-bottom:3px'>" + esc(ta) + "</div><input type='number' inputmode='numeric' value='" + esc(String(pr.a)) + "' oninput=\"evPred['" + f.key + "'].a=this.value\" style='width:100%;background:var(--ink2);border:1px solid var(--line);border-radius:11px;padding:12px;font-size:16px;color:var(--cream);outline:none;text-align:center'></div>"
+          + "<div style='font-size:18px;color:#888;font-weight:800;padding-bottom:12px'>:</div>"
+          + "<div style='flex:1'><div style='font-size:10px;color:#888;margin-bottom:3px'>" + esc(tb) + "</div><input type='number' inputmode='numeric' value='" + esc(String(pr.b)) + "' oninput=\"evPred['" + f.key + "'].b=this.value\" style='width:100%;background:var(--ink2);border:1px solid var(--line);border-radius:11px;padding:12px;font-size:16px;color:var(--cream);outline:none;text-align:center'></div>"
+          + "</div>";
+      }
     } else {
       h += "<input type='text' id='eff-" + f.key + "' placeholder='" + esc(f.placeholder||"") + "' style='width:100%;background:var(--ink2);border:1px solid var(--line);border-radius:11px;padding:13px;font-size:16px;color:var(--cream);outline:none'>";
     }
@@ -834,9 +889,16 @@ function EVFOTO(key, input) {
 function EVHAPUSFOTO(key, i) {
   if (evFiles[key]) { evFiles[key].splice(i,1); EVRENDER(); }
 }
+function EVPRED(key, which) {
+  if (!evPred[key]) evPred[key] = {winner:"", a:"", b:""};
+  evPred[key].winner = which;
+  EVRENDER();
+}
 function EVKIRIM() {
   if (window._evKirim) return;
   if (!evAktif) { toast("Event tidak dipilih","err"); return; }
+  var _ms = evDeadlineMs(evAktif.deadline);
+  if (_ms && _ms <= Date.now()) { toast("Maaf, waktu event sudah habis \u23F0","err"); return; }
   var nama = (V("ef-name")||"").trim();
   var tel = valPhone(V("ef-phone")||"");
   if (nama.length < 2) return toast("Isi nama lengkap kamu","err");
@@ -849,6 +911,16 @@ function EVKIRIM() {
     if (f.type === "photo") {
       var arr = evFiles[f.key] || [];
       if (f.required && !arr.length) return toast("Wajib upload: " + (f.label||f.key),"err");
+    } else if (f.type === "prediksi") {
+      var pr = evPred[f.key] || {winner:"",a:"",b:""};
+      var ta = f.teamA||"Tim A", tb = f.teamB||"Tim B";
+      if (f.required && !pr.winner) return toast("Pilih pemenang: " + (f.label||f.key),"err");
+      if (f.withScore !== false && f.required && (pr.a===""||pr.b==="")) return toast("Isi skor: " + (f.label||f.key),"err");
+      if (pr.winner) {
+        var wLabel = pr.winner==="A" ? ta : (pr.winner==="B" ? tb : "Seri");
+        var sc = (f.withScore!==false && (pr.a!==""||pr.b!=="")) ? (" " + (pr.a||"0") + "-" + (pr.b||"0")) : "";
+        jawab[f.key] = ta + " vs " + tb + " \u2192 " + wLabel + sc;
+      }
     } else {
       var v = (V("eff-"+f.key)||"").trim();
       if (f.required && !v) return toast("Wajib diisi: " + (f.label||f.key),"err");
@@ -878,7 +950,7 @@ function EVKIRIM() {
     window._evLastCode = kode;
     var det = "<div class='info-box' style='text-align:left'><div class='info-ttl'>\uD83D\uDCDD Jawabanmu</div>";
     for (var k in jawab) { if (jawab[k]) det += "<div style='font-size:12px;color:#888;margin-bottom:2px'>\u2022 " + esc(k) + ": <strong style='color:#C9A84C'>" + esc(jawab[k]) + "</strong></div>"; }
-    det += "<div style='font-size:11px;color:#666;margin-top:7px'>Status: \u23F3 Menunggu verifikasi admin</div></div>";
+    det += "<div style='font-size:11px;color:#4CAF7D;margin-top:7px;font-weight:700'>Status: \u2705 Kamu sudah terdaftar sebagai peserta</div></div>";
     S("ef-ok-detail", det);
     P("eventok");
     btn.disabled = false; btn.textContent = "\uD83C\uDFC6 Kirim Jawaban / Submit"; window._evKirim = false;
@@ -898,7 +970,7 @@ function EVKIRIM() {
         }, function(){});
       }
     }
-    evFiles = {};
+    evFiles = {}; evPred = {};
   });
 }
 function EVSALIN() {
@@ -917,7 +989,7 @@ function EVCEK() {
     var o = fromFS(d.fields);
     var st = o.status || "pending";
     var map = {
-      pending:  {t:"\u23F3 Menunggu Verifikasi", c:"#D4A017", bg:"rgba(212,160,23,.12)"},
+      pending:  {t:"\u2705 Terdaftar", c:"#4CAF7D", bg:"rgba(76,175,125,.12)"},
       verified: {t:"\u2705 Terverifikasi", c:"#4CAF7D", bg:"rgba(76,175,125,.12)"},
       rejected: {t:"\u274C Ditolak", c:"#D4504A", bg:"rgba(212,80,74,.12)"},
       revisi:   {t:"\u270F\uFE0F Perlu Revisi", c:"#E8924A", bg:"rgba(232,146,74,.12)"}
@@ -932,6 +1004,22 @@ function EVCEK() {
     if (st === "revisi" || st === "rejected") h += "<button class='btn btn-wa' style='margin-top:10px' onclick=\"WA('Halo Admin, saya mau tanya soal event. Kode peserta: " + esc(o.code||kode) + "')\">\uD83D\uDCAC Tanya Admin</button>";
     h += "</div></div>";
     el.innerHTML = h;
+    // Tampilkan pengumuman pemenang bila event sudah mengumumkannya
+    if (o.eventId) {
+      fsGet("events/" + o.eventId, function(ed){
+        if (!ed || !ed.fields) return;
+        var ev = fromFS(ed.fields);
+        if (!ev.winnerAnnounced) return;
+        var menang = ev.winnerName && (o.name||"").trim().toLowerCase() === String(ev.winnerName).trim().toLowerCase();
+        var wb = "<div style='background:rgba(232,190,80,.1);border:1px solid rgba(232,190,80,.4);border-radius:12px;padding:13px;margin-top:10px'>"
+          + "<div style='font-size:13px;font-weight:800;color:#E8BE50;margin-bottom:4px'>\uD83C\uDFC6 Pengumuman Pemenang</div>"
+          + "<div style='font-size:13px;color:#C9A84C;font-weight:700'>" + esc(ev.winnerName||"-") + "</div>"
+          + (menang ? "<div style='font-size:12px;color:#4CAF7D;font-weight:700;margin-top:5px'>\uD83C\uDF89 Selamat! Kamu pemenangnya!</div>" : "")
+          + (ev.winnerNote ? "<div style='font-size:12px;color:#C8C0B0;line-height:1.5;margin-top:5px'>" + esc(ev.winnerNote) + "</div>" : "")
+          + "</div>";
+        var box = E("ev-cek-result"); if (box) box.insertAdjacentHTML("beforeend", wb);
+      });
+    }
   });
 }
 var hRute = "Cairo \u2192 Jakarta";
