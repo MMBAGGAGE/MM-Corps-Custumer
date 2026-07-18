@@ -214,6 +214,7 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
     <div class="svcs-lbl">Our Services</div>
     <div class="card" onclick="P('tnc')"><div class="ci ci-g">&#128203;</div><div class="card-body"><div class="card-badge">&#9888;&#65039; Wajib Baca</div><div class="card-title">Syarat &amp; Ketentuan</div><div class="card-sub">Baca sebelum memesan / Read before ordering</div></div><div class="card-arr">&#8250;</div></div>
     <div class="card" onclick="P('tutorial')"><div class="ci ci-p">&#127891;</div><div class="card-body"><div class="card-badge">Mulai di sini / Start here</div><div class="card-title">Cara Pesan &amp; Tutorial</div><div class="card-sub">Panduan lengkap A-Z / Full guide</div></div><div class="card-arr">&#8250;</div></div>
+    <div class="card" onclick="P('event')" style="border-color:rgba(232,146,74,.4)"><div class="ci ci-p">&#127942;</div><div class="card-body"><div class="card-badge" style="background:rgba(232,146,74,.15);color:#E8924A">Event / Giveaway</div><div class="card-title">Event &amp; Giveaway</div><div class="card-sub">Ikut event berhadiah / Join our events</div></div><div class="card-arr">&#8250;</div></div>
     <div class="card" onclick="P('harga')"><div class="ci ci-g">&#128176;</div><div class="card-body"><div class="card-badge">Cek dulu / Check first</div><div class="card-title">Daftar Harga &amp; Kalkulator</div><div class="card-sub">Lihat harga &amp; hitung biaya / See prices &amp; calculate</div></div><div class="card-arr">&#8250;</div></div>
     <div class="card" onclick="P('order')"><div class="ci ci-t">&#128230;</div><div class="card-body"><div class="card-title">Order Pengiriman Bagasi</div><div class="card-sub">Kirim bagasi / Send baggage &middot; Real-time tracking</div></div><div class="card-arr">&#8250;</div></div>
     <div class="card" onclick="P('track')"><div class="ci ci-g">&#128269;</div><div class="card-body"><div class="card-title">Cek Status &amp; Foto Barang</div><div class="card-sub">Lacak &amp; lihat foto / Track &amp; view photos</div></div><div class="card-arr">&#8250;</div></div>
@@ -471,6 +472,54 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
   </div>
 </div>
 
+<div id="p-event" class="page">
+  <div class="hdr"><div class="back" onclick="P('home')">&#8592;</div><div class="hdr-title">Event &amp; Giveaway</div></div>
+  <div class="bdy">
+    <div id="ev-list"><div class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
+    <div class="divider"></div>
+    <div class="sec"><div class="sec-lbl">Cek Status Peserta / Check Entry</div>
+      <p style="font-size:12px;color:#666;margin-bottom:8px;line-height:1.5">Sudah ikut event? Masukkan kode pesertamu untuk cek status verifikasi.</p>
+      <div class="search-box">
+        <input type="text" id="ev-cek-input" placeholder="EVT..." autocapitalize="characters">
+        <button class="search-btn" onclick="EVCEK()">Cek</button>
+      </div>
+      <div id="ev-cek-result"></div>
+    </div>
+  </div>
+</div>
+
+<div id="p-eventform" class="page">
+  <div class="hdr"><div class="back" onclick="P('event')">&#8592;</div><div class="hdr-title" id="ef-title">Ikut Event</div></div>
+  <div class="bdy">
+    <div id="ef-info"></div>
+    <div class="sec"><div class="sec-lbl">Data Kamu / Your Details</div>
+      <div class="fld"><label>Nama Lengkap *</label><input type="text" id="ef-name" placeholder="cth: Muhammad Ali"></div>
+      <div class="fld"><label>Nomor WhatsApp *</label><input type="tel" id="ef-phone" placeholder="cth: 628123456789" inputmode="numeric"><div class="hint">Wajib kode negara. Indonesia 62... / Mesir 20...</div></div>
+    </div>
+    <div id="ef-fields"></div>
+    <div class="warn2"><div style="font-size:11px;font-weight:700;color:#C0392B;margin-bottom:3px">&#9888;&#65039; Perhatian</div><div style="font-size:12px;color:#C0392B;line-height:1.5">Pastikan semua data & bukti benar. Admin akan memverifikasi. Data palsu = didiskualifikasi.</div></div>
+    <button class="btn btn-gold" id="ef-btn" onclick="EVKIRIM()">&#127942; Kirim Jawaban / Submit</button>
+  </div>
+</div>
+
+<div id="p-eventok" class="page">
+  <div class="hdr"><div class="back" onclick="P('home')">&#8592;</div><div class="hdr-title">Berhasil Ikut Event</div></div>
+  <div class="bdy conf">
+    <div class="conf-icon">&#127942;</div>
+    <div style="font-size:18px;font-weight:800;margin-bottom:5px">Jawaban Terkirim!</div>
+    <div style="font-size:13px;color:#666;margin-bottom:14px">Submitted successfully</div>
+    <div class="code-box">
+      <div class="code-lbl">Kode Peserta / Entry Code</div>
+      <div class="code-val" id="ef-code">-</div>
+      <div class="code-hint">Simpan kode ini untuk cek status</div>
+    </div>
+    <button class="btn btn-dark" onclick="EVSALIN()">&#128203; Salin Kode</button>
+    <div id="ef-ok-detail"></div>
+    <button class="btn btn-gold" style="margin-top:12px" onclick="P('event')">&#128269; Cek Status Peserta</button>
+    <button class="btn-ghost" onclick="P('home')">Kembali ke Beranda</button>
+  </div>
+</div>
+
 <div id="p-jadwal" class="page">
   <div class="hdr"><div class="back" onclick="P('home')">&#8592;</div><div class="hdr-title">Jadwal Trip / Flight Schedule</div></div>
   <div class="bdy"><p style="font-size:13px;color:#555;margin-bottom:14px;line-height:1.5">Jadwal tersedia. Pesan sebelum cut-off. / Available schedules. Order before cut-off.</p><div id="j-list"><div class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>
@@ -688,9 +737,203 @@ function P(id) {
   if (id === "order") INIT();
   if (id === "jadwal") JADWAL();
   if (id === "harga") HARGA();
+  if (id === "event") EVENT();
 }
 
-// ── DAFTAR HARGA & KALKULATOR ────────────────
+// ═══════════════════════════════════════════
+// EVENT CENTER (universal, config dari admin)
+// Struktur: events/{id} · eventEntries/{code} · eventFiles/{id}
+// Satu dokumen per file → tidak kena batas 1MB Firestore, versioning aman.
+// TERISOLASI: tidak menyentuh order bagasi sama sekali.
+// ═══════════════════════════════════════════
+var evAktif = null;      // event yang sedang diisi
+var evFiles = {};        // {fieldKey: [dataUrl,...]}
+
+function EVENT() {
+  var w = E("ev-list"); if (!w) return;
+  fsList("events", function(docs){
+    if (!docs || !docs.length) { w.innerHTML = "<div class='empty' style='padding:30px'><div style='font-size:30px;margin-bottom:8px'>\uD83C\uDFC6</div><div style='font-size:14px;font-weight:700'>Belum ada event aktif</div><div style='font-size:12px;color:#555;margin-top:4px'>Pantau terus ya, event berhadiah segera hadir!</div></div>"; return; }
+    var list = docs.map(function(d){ var o = fromFS(d.fields); o.id = d.id; return o; })
+      .filter(function(e){ return e.status === "open"; });
+    if (!list.length) { w.innerHTML = "<div class='empty' style='padding:30px'><div style='font-size:30px;margin-bottom:8px'>\uD83C\uDFC6</div><div style='font-size:14px;font-weight:700'>Belum ada event yang dibuka</div></div>"; return; }
+    var h = "";
+    for (var i=0;i<list.length;i++) {
+      var e = list[i];
+      window["_ev_"+e.id] = e;
+      h += "<div class='card' onclick=\"EVBUKA('" + e.id + "')\" style='border-color:rgba(232,146,74,.35)'>"
+        + "<div class='ci ci-p'>\uD83C\uDFC6</div><div class='card-body'>"
+        + (e.prize ? "<div class='card-badge' style='background:rgba(232,146,74,.15);color:#E8924A'>\uD83C\uDF81 " + esc(e.prize) + "</div>" : "")
+        + "<div class='card-title'>" + esc(e.title||"Event") + "</div>"
+        + "<div class='card-sub'>" + esc((e.desc||"").slice(0,60)) + (e.deadline?(" \u00B7 s/d " + tgl(e.deadline)):"") + "</div>"
+        + "</div><div class='card-arr'>\u203A</div></div>";
+    }
+    w.innerHTML = h;
+  });
+}
+function EVBUKA(id) {
+  var e = window["_ev_"+id];
+  if (!e) { toast("Event tidak ditemukan","err"); return; }
+  evAktif = e; evFiles = {};
+  S("ef-title", esc(e.title||"Ikut Event"));
+  var info = "<div style='background:linear-gradient(150deg,#1B1408,#0D0D10);border:1px solid rgba(232,146,74,.3);border-radius:14px;padding:15px;margin-bottom:14px'>"
+    + "<div style='font-size:16px;font-weight:800;color:#E8924A;margin-bottom:6px'>\uD83C\uDFC6 " + esc(e.title||"") + "</div>"
+    + (e.prize ? "<div style='font-size:13px;color:#C9A84C;font-weight:700;margin-bottom:6px'>\uD83C\uDF81 Hadiah: " + esc(e.prize) + "</div>" : "")
+    + "<div style='font-size:12px;color:#C8C0B0;line-height:1.7;white-space:pre-wrap'>" + esc(e.desc||"") + "</div>"
+    + (e.deadline ? "<div style='font-size:11px;color:#888;margin-top:8px'>\u23F0 Batas: " + tgl(e.deadline) + "</div>" : "")
+    + "</div>";
+  S("ef-info", info);
+  EVRENDER();
+  P("eventform");
+}
+// Render field dinamis sesuai konfigurasi admin
+function EVRENDER() {
+  var w = E("ef-fields"); if (!w || !evAktif) return;
+  var fields = evAktif.fields || [];
+  var h = "";
+  for (var i=0;i<fields.length;i++) {
+    var f = fields[i];
+    var wajib = f.required ? " <span style='color:#D4504A'>*</span>" : " <span style='color:#666'>(opsional)</span>";
+    h += "<div class='sec'><div class='sec-lbl'>" + esc(f.label||("Isian "+(i+1))) + "</div>";
+    if (f.hint) h += "<p style='font-size:11px;color:#666;margin-bottom:8px;line-height:1.5'>" + esc(f.hint) + "</p>";
+    if (f.type === "photo") {
+      var arr = evFiles[f.key] || [];
+      var maks = parseInt(f.max) || 1;
+      h += "<div id='efp-" + f.key + "'>";
+      for (var j=0;j<arr.length;j++) {
+        h += "<div style='position:relative;margin-bottom:8px'><img src='" + arr[j] + "' style='width:100%;max-height:200px;object-fit:cover;border-radius:10px;display:block'>"
+          + "<button onclick='EVHAPUSFOTO(\"" + f.key + "\"," + j + ")' style='position:absolute;top:7px;right:7px;background:rgba(212,80,74,.92);color:#fff;border:none;border-radius:8px;width:32px;height:32px;font-size:16px;cursor:pointer'>\u00D7</button></div>";
+      }
+      if (arr.length < maks) {
+        h += "<label style='display:block;background:var(--ink2);border:1px dashed var(--line);border-radius:11px;padding:16px;text-align:center;font-size:12px;color:#7Fc4e8;cursor:pointer'>\uD83D\uDCF7 Ketuk untuk pilih / ambil foto"
+          + (maks>1 ? ("<div style='font-size:10px;color:#666;margin-top:3px'>" + arr.length + "/" + maks + " foto</div>") : "")
+          + "<input type='file' accept='image/*' onchange='EVFOTO(\"" + f.key + "\",this)' style='display:none'></label>";
+      }
+      h += "</div><div class='hint' style='margin-top:4px'>Wajib diisi" + (f.required?"":" (opsional)") + " \u00B7 maks " + maks + " foto</div>";
+    } else if (f.type === "number") {
+      h += "<input type='number' id='eff-" + f.key + "' placeholder='" + esc(f.placeholder||"0") + "' inputmode='numeric' style='width:100%;background:var(--ink2);border:1px solid var(--line);border-radius:11px;padding:13px;font-size:16px;color:var(--cream);outline:none'>";
+    } else if (f.type === "textarea") {
+      h += "<textarea id='eff-" + f.key + "' placeholder='" + esc(f.placeholder||"") + "' style='width:100%;background:var(--ink2);border:1px solid var(--line);border-radius:11px;padding:13px;font-size:16px;color:var(--cream);outline:none;min-height:80px;resize:none'></textarea>";
+    } else {
+      h += "<input type='text' id='eff-" + f.key + "' placeholder='" + esc(f.placeholder||"") + "' style='width:100%;background:var(--ink2);border:1px solid var(--line);border-radius:11px;padding:13px;font-size:16px;color:var(--cream);outline:none'>";
+    }
+    h += "<div style='font-size:10px;color:#555;margin-top:3px'>" + (f.required?"Wajib":"Opsional") + wajib.replace(/<[^>]*>/g,"") + "</div></div>";
+  }
+  w.innerHTML = h;
+}
+function EVFOTO(key, input) {
+  var file = input.files && input.files[0]; if (!file) return;
+  if (file.size > 12*1024*1024) { toast("Foto terlalu besar (maks 12MB)","err"); return; }
+  toast("Memproses foto...","info");
+  compressPhotoCust(file).then(function(dataUrl){
+    if (!evFiles[key]) evFiles[key] = [];
+    evFiles[key].push(dataUrl);
+    EVRENDER();
+    toast("Foto ditambahkan \u2705","ok");
+  }).catch(function(e){ toast("Gagal: "+e.message,"err"); });
+}
+function EVHAPUSFOTO(key, i) {
+  if (evFiles[key]) { evFiles[key].splice(i,1); EVRENDER(); }
+}
+function EVKIRIM() {
+  if (window._evKirim) return;
+  if (!evAktif) { toast("Event tidak dipilih","err"); return; }
+  var nama = (V("ef-name")||"").trim();
+  var tel = valPhone(V("ef-phone")||"");
+  if (nama.length < 2) return toast("Isi nama lengkap kamu","err");
+  if (!tel) return toast("Nomor WA wajib pakai kode negara (62.../20...)","err");
+  // Kumpulkan jawaban + validasi field wajib
+  var fields = evAktif.fields || [];
+  var jawab = {};
+  for (var i=0;i<fields.length;i++) {
+    var f = fields[i];
+    if (f.type === "photo") {
+      var arr = evFiles[f.key] || [];
+      if (f.required && !arr.length) return toast("Wajib upload: " + (f.label||f.key),"err");
+    } else {
+      var v = (V("eff-"+f.key)||"").trim();
+      if (f.required && !v) return toast("Wajib diisi: " + (f.label||f.key),"err");
+      jawab[f.key] = v;
+    }
+  }
+  var btn = E("ef-btn");
+  btn.disabled = true; btn.textContent = "\u23F3 Mengirim..."; window._evKirim = true;
+  var d = new Date();
+  var kode = "EVT" + ("0"+d.getDate()).slice(-2) + ("0"+(d.getMonth()+1)).slice(-2) + String(d.getFullYear()).slice(-2) + "-" + randSuffix() + randSuffix();
+  var entry = {
+    eventId: evAktif.id, eventTitle: evAktif.title||"",
+    code: kode, name: nama, phone: tel,
+    answers: jawab, status: "pending",
+    verifNote: "", verifiedBy: "", verifiedAt: null,
+    ts: Date.now(), createdAt: d.toISOString()
+  };
+  fsSet("eventEntries/" + kode, entry, function(res){
+    if (!res || !res.name) {
+      btn.disabled = false; btn.textContent = "\uD83C\uDFC6 Kirim Jawaban / Submit"; window._evKirim = false;
+      var em = ""; try { em = (res && res.error) ? (res.error.status||"") + " " + (res.error.message||"") : ""; } catch(e){}
+      toast(em ? ("Gagal: " + em.slice(0,80)) : "Gagal kirim. Cek koneksi & coba lagi.","err");
+      return;
+    }
+    // TAMPILKAN KODE SEGERA — file diunggah di belakang
+    S("ef-code", kode);
+    window._evLastCode = kode;
+    var det = "<div class='info-box' style='text-align:left'><div class='info-ttl'>\uD83D\uDCDD Jawabanmu</div>";
+    for (var k in jawab) { if (jawab[k]) det += "<div style='font-size:12px;color:#888;margin-bottom:2px'>\u2022 " + esc(k) + ": <strong style='color:#C9A84C'>" + esc(jawab[k]) + "</strong></div>"; }
+    det += "<div style='font-size:11px;color:#666;margin-top:7px'>Status: \u23F3 Menunggu verifikasi admin</div></div>";
+    S("ef-ok-detail", det);
+    P("eventok");
+    btn.disabled = false; btn.textContent = "\uD83C\uDFC6 Kirim Jawaban / Submit"; window._evKirim = false;
+    // Upload file satu per satu (dokumen terpisah — hindari batas 1MB)
+    var urut = 0;
+    for (var fk in evFiles) {
+      var list = evFiles[fk];
+      for (var n=0;n<list.length;n++) {
+        urut++;
+        var fid = kode + "-" + fk + "-v1-" + urut;
+        fsSet("eventFiles/" + fid, {
+          eventId: evAktif.id, entryCode: kode, fieldKey: fk,
+          data: list[n], mime: "image/jpeg",
+          size: list[n].length, version: 1, urut: urut,
+          uploader: nama, uploaderPhone: tel,
+          ts: Date.now(), createdAt: new Date().toISOString()
+        }, function(){});
+      }
+    }
+    evFiles = {};
+  });
+}
+function EVSALIN() {
+  var t = (E("ef-code")||{}).textContent || "";
+  if (!t || t === "-") { toast("Kode tidak tersedia","err"); return; }
+  try { navigator.clipboard.writeText(t).then(function(){ toast("Kode disalin \u2705","ok"); }).catch(function(){ prompt("Salin kode:", t); }); }
+  catch(e) { prompt("Salin kode:", t); }
+}
+function EVCEK() {
+  var kode = (V("ev-cek-input")||"").toUpperCase().replace(/[^A-Z0-9\-]/g,"");
+  var el = E("ev-cek-result"); if (!el) return;
+  if (!kode) { el.innerHTML = "<div class='empty' style='padding:14px;font-size:12px'>Masukkan kode pesertamu</div>"; return; }
+  el.innerHTML = "<div class='loader'><div class='dot'></div><div class='dot'></div><div class='dot'></div></div>";
+  fsGet("eventEntries/" + kode, function(d){
+    if (!d || !d.fields) { el.innerHTML = "<div class='empty' style='padding:18px'><div style='font-size:13px;font-weight:700'>Kode tidak ditemukan</div><div style='font-size:12px;color:#555;margin-top:3px'>Pastikan kode diketik persis.</div></div>"; return; }
+    var o = fromFS(d.fields);
+    var st = o.status || "pending";
+    var map = {
+      pending:  {t:"\u23F3 Menunggu Verifikasi", c:"#D4A017", bg:"rgba(212,160,23,.12)"},
+      verified: {t:"\u2705 Terverifikasi", c:"#4CAF7D", bg:"rgba(76,175,125,.12)"},
+      rejected: {t:"\u274C Ditolak", c:"#D4504A", bg:"rgba(212,80,74,.12)"},
+      revisi:   {t:"\u270F\uFE0F Perlu Revisi", c:"#E8924A", bg:"rgba(232,146,74,.12)"}
+    };
+    var s = map[st] || map.pending;
+    var h = "<div class='res'><div class='res-top'><div class='res-code'>" + esc(o.code||kode) + "</div>"
+      + "<div class='res-name'>" + esc(o.name||"-") + "</div>"
+      + "<div class='res-route'>" + esc(o.eventTitle||"Event") + "</div></div><div class='res-body'>"
+      + "<div style='display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:18px;font-size:12px;font-weight:700;margin-bottom:11px;background:" + s.bg + ";color:" + s.c + "'>" + s.t + "</div>";
+    if (o.answers) { for (var k in o.answers) { if (o.answers[k]) h += "<div style='font-size:12px;color:#888;margin-bottom:3px'>\u2022 " + esc(k) + ": <strong style='color:#C9A84C'>" + esc(o.answers[k]) + "</strong></div>"; } }
+    if (o.verifNote) h += "<div style='background:rgba(212,80,74,.07);border:1px solid rgba(212,80,74,.2);border-radius:10px;padding:11px;margin-top:9px'><div style='font-size:10px;font-weight:700;color:#D4504A;margin-bottom:3px'>\uD83D\uDCDD CATATAN ADMIN</div><div style='font-size:12px;color:#C8C0B0;line-height:1.5'>" + esc(o.verifNote) + "</div></div>";
+    if (st === "revisi" || st === "rejected") h += "<button class='btn btn-wa' style='margin-top:10px' onclick=\"WA('Halo Admin, saya mau tanya soal event. Kode peserta: " + esc(o.code||kode) + "')\">\uD83D\uDCAC Tanya Admin</button>";
+    h += "</div></div>";
+    el.innerHTML = h;
+  });
+}
 var hRute = "Cairo \u2192 Jakarta";
 var hItems = [{cat:"", qty:""}];
 function HSETRUTE(r) {
