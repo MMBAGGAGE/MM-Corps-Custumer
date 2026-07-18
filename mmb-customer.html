@@ -943,6 +943,7 @@ function EVKIRIM() {
       btn.disabled = false; btn.textContent = "\uD83C\uDFC6 Kirim Jawaban / Submit"; window._evKirim = false;
       var em = ""; try { em = (res && res.error) ? (res.error.status||"") + " " + (res.error.message||"") : ""; } catch(e){}
       toast(em ? ("Gagal: " + em.slice(0,80)) : "Gagal kirim. Cek koneksi & coba lagi.","err");
+      try { alert("Gagal menyimpan data event.\n\n" + (em||"Tidak ada respon server / koneksi terputus.") + "\n\nScreenshot pesan ini & kirim ke admin bila berulang."); } catch(e){}
       return;
     }
     // TAMPILKAN KODE SEGERA — file diunggah di belakang
