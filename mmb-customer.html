@@ -715,7 +715,15 @@ function toast(msg, type) {
 function V(id) { return (document.getElementById(id)||{}).value || ""; }
 function S(id, v) { var e = document.getElementById(id); if (e) e.innerHTML = v||""; }
 function E(id) { return document.getElementById(id); }
+// Harga khusus per-trip: kalau trip yang dipilih punya harga sendiri untuk kategori ini, pakai itu.
+function tripRateMap() {
+  if (!tripId) return null;
+  for (var i=0;i<trips.length;i++) if (trips[i].id===tripId) return trips[i].tripRates || null;
+  return null;
+}
 function rate(k, q) {
+  var tr = tripRateMap();
+  if (tr && tr[k] != null && tr[k] !== "" && !isNaN(parseFloat(tr[k]))) return parseFloat(tr[k]);
   var b = (CFG.rates && CFG.rates[k]) || DRATES[k] || 150000;
   try { if (CFG.bulkActive && CFG.bulkActive[k] && CFG.bulkMin && CFG.bulkRates && parseFloat(q||0) >= (CFG.bulkMin[k]||0)) return CFG.bulkRates[k]; } catch(e){}
   return b;
@@ -1415,11 +1423,17 @@ function TRIPS() {
   });
 }
 function SEL(id) {
-  tripId = id; TRIPS();
+  tripId = id;
+  // Harga bisa berbeda tiap trip — hitung ulang semua barang & tampilannya.
+  for (var j=0;j<items.length;j++){ if(!items[j].adminPriced && items[j].cat!=="Lainnya"){ items[j].rate=rate(items[j].cat, items[j].qty); } }
+  TRIPS();
+  if (typeof RI==='function') RI();
+  if (typeof CALC==='function') CALC();
   var t = null; for (var i=0;i<trips.length;i++) if (trips[i].id===id) { t=trips[i]; break; }
   var info = E("trip-info");
   if (t && info) {
     var lines = [];
+    if (t.tripRates && Object.keys(t.tripRates).length) lines.push("\uD83D\uDCB0 <strong style='color:#C9A84C'>Trip ini pakai harga khusus</strong> (harga di atas sudah menyesuaikan)");
     if (t.arrive) lines.push("\uD83D\uDEEC Est. Tiba: <strong>" + tgl(t.arrive) + "</strong>");
     if (t.cutoff) lines.push("\u23F0 Batas Order: <strong style='color:#C0392B'>" + tgl(t.cutoff) + "</strong>");
     if (t.note) lines.push("\uD83D\uDCDD " + t.note);
