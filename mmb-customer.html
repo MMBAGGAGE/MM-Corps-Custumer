@@ -431,6 +431,31 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
       </div>
     </div>
 
+    <div class="sec"><div class="sec-lbl">Sisa Slot Bagasi / Available Slots</div>
+      <p style="font-size:12px;color:#666;margin-bottom:10px;line-height:1.5">Perkiraan sisa kapasitas tiap trip. / Estimated remaining capacity per trip.</p>
+      <div id="h-slots"><div class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
+    </div>
+
+    <div class="sec"><div class="sec-lbl">Pilih Trip / Select Trip</div>
+      <div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.35);border-radius:11px;padding:12px 13px;margin-bottom:10px;font-size:12px;color:#E8D9B0;line-height:1.6">
+        📢 <strong style="color:#C9A84C">Harga berbeda tiap trip.</strong> Pilih dulu trip yang kamu inginkan di bawah — daftar harga & kalkulator akan menyesuaikan harga trip tersebut.<br>
+        <span style="color:#8a8577;font-size:11px">Prices differ per trip. Select a trip first — the price list & calculator will adjust to that trip.</span>
+      </div>
+      <select id="h-trip-sel" onchange="HPICKTRIP(this.value)" style="width:100%;background:var(--ink2);border:1px solid var(--line);border-radius:11px;padding:14px;font-size:15px;color:var(--cream);outline:none;font-weight:600"></select>
+    </div>
+
+    <div id="h-gate" style="text-align:center;padding:34px 18px;color:#8a8577">
+      <div style="font-size:40px;margin-bottom:10px">🧳</div>
+      <div style="font-size:14px;font-weight:700;color:#C9A84C;margin-bottom:4px">Pilih trip dulu di atas</div>
+      <div style="font-size:12px;line-height:1.6">Setelah memilih trip, daftar harga dan kalkulator biaya akan muncul dengan harga khusus trip itu.<br><span style="color:#666">Select a trip above to reveal prices & the calculator.</span></div>
+    </div>
+
+    <div id="h-priced" style="display:none">
+    <div class="sec"><div class="sec-lbl">Daftar Harga Lengkap / Full Price List</div>
+      <div id="h-trip-label" style="font-size:12px;color:#C9A84C;font-weight:700;margin-bottom:9px"></div>
+      <div id="h-list"></div>
+    </div>
+
     <div class="sec"><div class="sec-lbl">Kalkulator Biaya / Cost Calculator</div>
       <p style="font-size:12px;color:#666;margin-bottom:10px;line-height:1.5">Hitung perkiraan biaya. Bisa tambah lebih dari 1 jenis barang. / Estimate your cost. You can add more than one item type.</p>
       <div id="h-items"></div>
@@ -442,18 +467,6 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
       </div>
       <div style="background:rgba(212,80,74,.06);border:1px solid rgba(212,80,74,.2);border-radius:10px;padding:11px;margin-top:10px;font-size:11px;color:#C8C0B0;line-height:1.5">&#9888;&#65039; Ini <strong>perkiraan</strong>. Harga final dihitung dari <strong>berat aktual</strong> saat barang ditimbang admin, dan belum termasuk bea cukai/pajak.<br><span style="color:#777">This is an estimate. Final price is based on actual weight; customs/tax not included.</span></div>
     </div>
-
-    <div class="sec"><div class="sec-lbl">Sisa Slot Bagasi / Available Slots</div>
-      <p style="font-size:12px;color:#666;margin-bottom:10px;line-height:1.5">Perkiraan sisa kapasitas tiap trip. / Estimated remaining capacity per trip.</p>
-      <div id="h-slots"><div class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
-    </div>
-
-    <div class="sec"><div class="sec-lbl">Daftar Harga Lengkap / Full Price List</div>
-      <div id="h-trip-note" style="display:none;margin-bottom:9px">
-        <div style="font-size:11px;color:#C9A84C;margin-bottom:5px">💰 Beberapa trip punya harga khusus. Pilih trip untuk melihat harganya:</div>
-        <select id="h-trip-sel" onchange="HPICKTRIP(this.value)" style="width:100%;background:var(--ink2);border:1px solid var(--line);border-radius:11px;padding:12px;font-size:14px;color:var(--cream);outline:none"></select>
-      </div>
-      <div id="h-list"></div>
     </div>
 
     <div class="sec"><div class="sec-lbl">Cara Order / How to Order</div>
@@ -727,10 +740,16 @@ function tripFor(forcedId) {
   for (var i=0;i<trips.length;i++) if (trips[i].id===tid) return trips[i];
   return null;
 }
+// Apakah borongan trip aktif utk kategori k? (toggle admin)
+function tripBulkOn(t, k) {
+  if (!t || !t.tripBulkActive) return false;
+  if (t.tripBulkActive[k] !== true) return false;
+  return (t.tripBulkRates && t.tripBulkRates[k]!=null && t.tripBulkRates[k]!=='' && !isNaN(parseFloat(t.tripBulkRates[k])));
+}
 // Harga borongan efektif utk kategori k pd trip tertentu (utk tampilan Daftar Harga).
 function effBulk(k, forcedId) {
   var t = tripFor(forcedId);
-  if (t && t.tripBulkRates && t.tripBulkRates[k]!=null && t.tripBulkRates[k]!=='' && !isNaN(parseFloat(t.tripBulkRates[k]))) {
+  if (tripBulkOn(t, k)) {
     return { min: parseFloat((t.tripBulkMin&&t.tripBulkMin[k])||0)||0, rate: parseFloat(t.tripBulkRates[k])||0 };
   }
   // Kalau trip punya harga flat khusus utk k, borongan global TIDAK berlaku utk trip ini.
@@ -744,8 +763,8 @@ function effBulk(k, forcedId) {
 function rate(k, q, forcedId) {
   var t = tripFor(forcedId);
   if (t) {
-    // 1) borongan khusus trip (kalau qty capai minimalnya)
-    if (t.tripBulkRates && t.tripBulkRates[k]!=null && t.tripBulkRates[k]!=='' && !isNaN(parseFloat(t.tripBulkRates[k]))) {
+    // 1) borongan khusus trip — hanya kalau toggle ON & qty capai minimalnya
+    if (tripBulkOn(t, k)) {
       var tmin = parseFloat((t.tripBulkMin&&t.tripBulkMin[k])||0)||0;
       if (tmin>0 && parseFloat(q||0) >= tmin) return parseFloat(t.tripBulkRates[k]);
     }
@@ -1066,6 +1085,7 @@ var hRute = "Cairo \u2192 Jakarta";
 var hItems = [{cat:"", qty:""}];
 function HSETRUTE(r) {
   hRute = r;
+  hTripId = "";   // trip terikat rute — reset saat ganti rute
   var cj = E("hrt-cj"), jc = E("hrt-jc");
   if (cj) cj.className = "rt-btn" + (r.indexOf("Cairo \u2192") === 0 ? " on" : "");
   if (jc) jc.className = "rt-btn" + (r.indexOf("Jakarta \u2192") === 0 ? " on" : "");
@@ -1162,17 +1182,47 @@ function HSLOTS() {
   });
 }
 function HARGA() {
-  HPRICES();
-  // Muat daftar trip supaya dropdown harga khusus terisi (di halaman ini `trips` bisa kosong).
+  HSLOTS();
+  HRENDER();
+  // Muat daftar trip untuk dropdown & gating.
   fsList("trips", function(docs){
     trips = (docs||[]).map(function(d){ var dd=fromFS(d.fields); dd.docId=d.name.split("/").pop(); return dd; });
     HTRIPSEL();
-    if (hTripId) { HPRICES(); HCALC(); }   // kalau ada trip preview, segarkan harga
+    HGATE();
+    if (hTripId) { HPRICES(); HCALC(); }
   });
-  HSLOTS();
-  HRENDER();
 }
-// Render daftar harga (mengikuti trip preview hTripId bila ada)
+// Trip mendatang yang tersedia untuk rute yang dipilih
+function hAvailTrips() {
+  var today = new Date(); today.setHours(0,0,0,0);
+  return (trips||[]).filter(function(t){
+    if (t.status==="done" || t.status==="closed") return false;
+    if (!t.date) return false;
+    if (new Date(t.date+"T00:00:00") < today) return false;
+    return (t.route||"") === hRute;
+  }).sort(function(a,b){ return (a.date||"").localeCompare(b.date||""); });
+}
+function tripHasCustom(t) {
+  if (!t) return false;
+  if (t.tripRates && Object.keys(t.tripRates).length) return true;
+  if (t.tripBulkActive) { for (var k in t.tripBulkActive) if (t.tripBulkActive[k]===true) return true; }
+  return false;
+}
+// Tampilkan/sembunyikan daftar harga sesuai apakah trip sudah dipilih
+function HGATE() {
+  var gate = E("h-gate"), priced = E("h-priced");
+  var ok = !!hTripId;
+  if (gate) gate.style.display = ok ? "none" : "block";
+  if (priced) priced.style.display = ok ? "block" : "none";
+  var lbl = E("h-trip-label");
+  if (lbl) {
+    var t = tripFor(hTripId);
+    lbl.innerHTML = t
+      ? ("🧳 Harga untuk trip <strong>" + esc(t.id||"") + " · " + tgl(t.date) + "</strong>" + (tripHasCustom(t) ? " · <span style='color:#4CAF7D'>harga khusus trip</span>" : " · harga standar"))
+      : "";
+  }
+}
+// Render daftar harga (mengikuti trip yang dipilih)
 function HPRICES() {
   var cats = hCats();
   var w = E("h-list");
@@ -1203,25 +1253,27 @@ function HPRICES() {
   }
   w.innerHTML = h || "<div class='empty'>Belum ada data harga</div>";
 }
-// Dropdown pilih trip utk melihat harga khusus trip di Daftar Harga
+// Dropdown pilih trip di Daftar Harga (semua trip tersedia untuk rute)
 function HTRIPSEL() {
   var sel = E("h-trip-sel"); if (!sel) return;
-  var opts = "<option value=''>Harga default (semua trip)</option>";
-  var withRates = trips.filter(function(t){
-    return (t.tripRates && Object.keys(t.tripRates).length) || (t.tripBulkRates && Object.keys(t.tripBulkRates).length);
-  });
-  for (var i=0;i<withRates.length;i++) {
-    var t = withRates[i];
-    opts += "<option value='" + t.id + "'" + (t.id===hTripId?" selected":"") + ">" + esc((t.id||"") + " · " + tgl(t.date) + (t.route?(" · "+t.route):"")) + "</option>";
+  var list = hAvailTrips();
+  var opts = "<option value=''>— Pilih trip / Select trip —</option>";
+  for (var i=0;i<list.length;i++) {
+    var t = list[i];
+    opts += "<option value='" + t.id + "'" + (t.id===hTripId?" selected":"") + ">" + esc((t.id||"") + " · " + tgl(t.date)) + (tripHasCustom(t)?" 💰":"") + "</option>";
   }
   sel.innerHTML = opts;
-  var note = E("h-trip-note");
-  if (note) note.style.display = withRates.length ? "block" : "none";
+  // kalau trip yang tadinya dipilih tak lagi tersedia (mis. ganti rute), reset
+  if (hTripId && !list.some(function(t){ return t.id===hTripId; })) hTripId = "";
+  if (list.length===0) {
+    var gate = E("h-gate");
+    if (gate) gate.innerHTML = "<div style='font-size:40px;margin-bottom:10px'>🗓️</div><div style='font-size:14px;font-weight:700;color:#C9A84C;margin-bottom:4px'>Belum ada trip untuk rute ini</div><div style='font-size:12px;line-height:1.6'>Silakan hubungi admin untuk jadwal terbaru.<br><span style='color:#666'>No upcoming trips for this route yet.</span></div>";
+  }
 }
 function HPICKTRIP(id) {
   hTripId = id || "";
-  HPRICES();   // render ulang harga
-  HCALC();     // hitung ulang kalkulator
+  HGATE();
+  if (hTripId) { HPRICES(); HRENDER(); HCALC(); }
 }
 // Hitung total semua baris (tanpa render ulang — aman untuk fokus input)
 function HCALC() {
