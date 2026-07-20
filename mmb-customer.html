@@ -449,6 +449,10 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
     </div>
 
     <div class="sec"><div class="sec-lbl">Daftar Harga Lengkap / Full Price List</div>
+      <div id="h-trip-note" style="display:none;margin-bottom:9px">
+        <div style="font-size:11px;color:#C9A84C;margin-bottom:5px">💰 Beberapa trip punya harga khusus. Pilih trip untuk melihat harganya:</div>
+        <select id="h-trip-sel" onchange="HPICKTRIP(this.value)" style="width:100%;background:var(--ink2);border:1px solid var(--line);border-radius:11px;padding:12px;font-size:14px;color:var(--cream);outline:none"></select>
+      </div>
       <div id="h-list"></div>
     </div>
 
@@ -715,15 +719,40 @@ function toast(msg, type) {
 function V(id) { return (document.getElementById(id)||{}).value || ""; }
 function S(id, v) { var e = document.getElementById(id); if (e) e.innerHTML = v||""; }
 function E(id) { return document.getElementById(id); }
-// Harga khusus per-trip: kalau trip yang dipilih punya harga sendiri untuk kategori ini, pakai itu.
-function tripRateMap() {
-  if (!tripId) return null;
-  for (var i=0;i<trips.length;i++) if (trips[i].id===tripId) return trips[i].tripRates || null;
+var hTripId = "";  // trip yang dipilih untuk PREVIEW harga di Daftar Harga
+// Ambil objek trip berdasarkan id (atau tripId aktif / hTripId preview).
+function tripFor(forcedId) {
+  var tid = forcedId || tripId;
+  if (!tid) return null;
+  for (var i=0;i<trips.length;i++) if (trips[i].id===tid) return trips[i];
   return null;
 }
-function rate(k, q) {
-  var tr = tripRateMap();
-  if (tr && tr[k] != null && tr[k] !== "" && !isNaN(parseFloat(tr[k]))) return parseFloat(tr[k]);
+// Harga borongan efektif utk kategori k pd trip tertentu (utk tampilan Daftar Harga).
+function effBulk(k, forcedId) {
+  var t = tripFor(forcedId);
+  if (t && t.tripBulkRates && t.tripBulkRates[k]!=null && t.tripBulkRates[k]!=='' && !isNaN(parseFloat(t.tripBulkRates[k]))) {
+    return { min: parseFloat((t.tripBulkMin&&t.tripBulkMin[k])||0)||0, rate: parseFloat(t.tripBulkRates[k])||0 };
+  }
+  // Kalau trip punya harga flat khusus utk k, borongan global TIDAK berlaku utk trip ini.
+  if (t && t.tripRates && t.tripRates[k]!=null && t.tripRates[k]!=='') return null;
+  if (CFG.bulkActive && CFG.bulkActive[k] && CFG.bulkMin && CFG.bulkRates) {
+    var m=CFG.bulkMin[k]||0, r=CFG.bulkRates[k]||0;
+    if (m>0 && r>0) return { min:m, rate:r };
+  }
+  return null;
+}
+function rate(k, q, forcedId) {
+  var t = tripFor(forcedId);
+  if (t) {
+    // 1) borongan khusus trip (kalau qty capai minimalnya)
+    if (t.tripBulkRates && t.tripBulkRates[k]!=null && t.tripBulkRates[k]!=='' && !isNaN(parseFloat(t.tripBulkRates[k]))) {
+      var tmin = parseFloat((t.tripBulkMin&&t.tripBulkMin[k])||0)||0;
+      if (tmin>0 && parseFloat(q||0) >= tmin) return parseFloat(t.tripBulkRates[k]);
+    }
+    // 2) harga flat khusus trip
+    if (t.tripRates && t.tripRates[k]!=null && t.tripRates[k]!=='' && !isNaN(parseFloat(t.tripRates[k]))) return parseFloat(t.tripRates[k]);
+  }
+  // 3) borongan global, lalu 4) harga global
   var b = (CFG.rates && CFG.rates[k]) || DRATES[k] || 150000;
   try { if (CFG.bulkActive && CFG.bulkActive[k] && CFG.bulkMin && CFG.bulkRates && parseFloat(q||0) >= (CFG.bulkMin[k]||0)) return CFG.bulkRates[k]; } catch(e){}
   return b;
@@ -1133,38 +1162,66 @@ function HSLOTS() {
   });
 }
 function HARGA() {
-  // Render daftar harga lengkap
-  var cats = hCats();
-  var w = E("h-list");
-  if (w) {
-    var h = "";
-    for (var i = 0; i < cats.length; i++) {
-      var c = cats[i];
-      var isLain = (c.k === "__LAIN__");
-      var u = c.t || "kg";
-      var base = isLain ? null : rate(c.k, 1);
-      var bulk = "";
-      try {
-        if (!isLain && CFG.bulkActive && CFG.bulkActive[c.k] && CFG.bulkMin && CFG.bulkRates) {
-          var bmin = CFG.bulkMin[c.k] || 0, brate = CFG.bulkRates[c.k] || 0;
-          if (bmin > 0 && brate > 0) {
-            bulk = "<div style='font-size:11px;color:#4CAF7D;margin-top:4px'>\uD83C\uDF81 Mulai " + bmin + " " + u + ": " + rp(brate) + " /" + u + "</div>";
-          }
-        }
-      } catch (e) {}
-      h += "<div style='background:linear-gradient(150deg,var(--ink3),var(--ink2));border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px'>"
-        + "<div style='flex:1;min-width:0'><div style='font-size:13px;font-weight:700;color:var(--cream)'>" + c.l + "</div>"
-        + "<div style='font-size:10px;color:#777;margin-top:1px'>dihitung per " + u + "</div>" + bulk + "</div>"
-        + "<div style='text-align:right;flex-shrink:0'>"
-        + (isLain
-            ? "<div style='font-size:11px;color:#C9A84C;font-weight:600'>\u2696\uFE0F Ditentukan<br>admin</div>"
-            : "<div style='font-family:monospace;font-size:15px;font-weight:700;color:#C9A84C'>" + rp(base) + "</div><div style='font-size:9px;color:#777'>/ " + u + "</div>")
-        + "</div></div>";
-    }
-    w.innerHTML = h || "<div class='empty'>Belum ada data harga</div>";
-  }
+  HPRICES();
+  // Muat daftar trip supaya dropdown harga khusus terisi (di halaman ini `trips` bisa kosong).
+  fsList("trips", function(docs){
+    trips = (docs||[]).map(function(d){ var dd=fromFS(d.fields); dd.docId=d.name.split("/").pop(); return dd; });
+    HTRIPSEL();
+    if (hTripId) { HPRICES(); HCALC(); }   // kalau ada trip preview, segarkan harga
+  });
   HSLOTS();
   HRENDER();
+}
+// Render daftar harga (mengikuti trip preview hTripId bila ada)
+function HPRICES() {
+  var cats = hCats();
+  var w = E("h-list");
+  if (!w) return;
+  var h = "";
+  for (var i = 0; i < cats.length; i++) {
+    var c = cats[i];
+    var isLain = (c.k === "__LAIN__");
+    var u = c.t || "kg";
+    var base = isLain ? null : rate(c.k, 1, hTripId);
+    var bulk = "";
+    try {
+      if (!isLain) {
+        var eb = effBulk(c.k, hTripId);
+        if (eb && eb.min > 0 && eb.rate > 0) {
+          bulk = "<div style='font-size:11px;color:#4CAF7D;margin-top:4px'>\uD83C\uDF81 Mulai " + eb.min + " " + u + ": " + rp(eb.rate) + " /" + u + "</div>";
+        }
+      }
+    } catch (e) {}
+    h += "<div style='background:linear-gradient(150deg,var(--ink3),var(--ink2));border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px'>"
+      + "<div style='flex:1;min-width:0'><div style='font-size:13px;font-weight:700;color:var(--cream)'>" + c.l + "</div>"
+      + "<div style='font-size:10px;color:#777;margin-top:1px'>dihitung per " + u + "</div>" + bulk + "</div>"
+      + "<div style='text-align:right;flex-shrink:0'>"
+      + (isLain
+          ? "<div style='font-size:11px;color:#C9A84C;font-weight:600'>\u2696\uFE0F Ditentukan<br>admin</div>"
+          : "<div style='font-family:monospace;font-size:15px;font-weight:700;color:#C9A84C'>" + rp(base) + "</div><div style='font-size:9px;color:#777'>/ " + u + "</div>")
+      + "</div></div>";
+  }
+  w.innerHTML = h || "<div class='empty'>Belum ada data harga</div>";
+}
+// Dropdown pilih trip utk melihat harga khusus trip di Daftar Harga
+function HTRIPSEL() {
+  var sel = E("h-trip-sel"); if (!sel) return;
+  var opts = "<option value=''>Harga default (semua trip)</option>";
+  var withRates = trips.filter(function(t){
+    return (t.tripRates && Object.keys(t.tripRates).length) || (t.tripBulkRates && Object.keys(t.tripBulkRates).length);
+  });
+  for (var i=0;i<withRates.length;i++) {
+    var t = withRates[i];
+    opts += "<option value='" + t.id + "'" + (t.id===hTripId?" selected":"") + ">" + esc((t.id||"") + " · " + tgl(t.date) + (t.route?(" · "+t.route):"")) + "</option>";
+  }
+  sel.innerHTML = opts;
+  var note = E("h-trip-note");
+  if (note) note.style.display = withRates.length ? "block" : "none";
+}
+function HPICKTRIP(id) {
+  hTripId = id || "";
+  HPRICES();   // render ulang harga
+  HCALC();     // hitung ulang kalkulator
 }
 // Hitung total semua baris (tanpa render ulang — aman untuk fokus input)
 function HCALC() {
@@ -1182,7 +1239,7 @@ function HCALC() {
       lines.push(c.l + ": " + q + " " + (c.t||"kg") + " \u00D7 <span style='color:#888'>harga oleh admin</span>");
       continue;
     }
-    var r = rate(c.k, q);
+    var r = rate(c.k, q, hTripId);
     var sub = q * r;
     tot += sub;
     lines.push(c.l + ": " + q + " " + (c.t||"kg") + " \u00D7 " + rp(r) + " = <strong style='color:#C9A84C'>" + rp(sub) + "</strong>");
