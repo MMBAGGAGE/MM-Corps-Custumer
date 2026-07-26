@@ -77,8 +77,11 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
 .fld-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .hint{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.45}
 .rt{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:2px;box-shadow:var(--rim)}
-.rt-btn{padding:14px 6px;text-align:center;font-size:11px;font-weight:600;color:var(--cream3);background:var(--ink2);border:none;cursor:pointer;font-family:inherit;line-height:1.4;-webkit-user-select:none;transition:background .15s}
-.rt-btn.on{background:linear-gradient(135deg,#8B6914,#E6C868);color:var(--ink);font-weight:800}
+.rt-btn{padding:14px 6px;text-align:center;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1.4;-webkit-user-select:none;transition:background .15s;border:none}
+.rt-btn.cj{background:rgba(230,200,104,.10);color:#E6C868;border-right:1px solid var(--line)}
+.rt-btn.jc{background:rgba(74,159,212,.10);color:#4A9FD4}
+.rt-btn.cj.on{background:linear-gradient(135deg,#8B6914,#E6C868);color:#1a1508;font-weight:900}
+.rt-btn.jc.on{background:linear-gradient(135deg,#0d3a5c,#4A9FD4);color:#fff;font-weight:900}
 .item-row{background:linear-gradient(150deg,var(--ink3),var(--ink2));border:1px solid var(--line);border-radius:14px;padding:15px;margin-bottom:10px;box-shadow:var(--shadow),var(--rim)}
 .item-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .item-num{font-size:11px;font-weight:700;color:var(--gold-dim);font-family:var(--mono)}
@@ -424,11 +427,18 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
   <div class="bdy">
     <div style="background:rgba(74,159,212,.08);border:1px solid rgba(74,159,212,.3);border-radius:10px;padding:11px 13px;margin-bottom:14px;font-size:12px;color:#C8C0B0;line-height:1.6">&#128161; Pilih rute dulu, lalu lihat harga per jenis barang. Pakai <strong style="color:#7Fc4e8">kalkulator</strong> di bawah untuk menghitung perkiraan biaya tanpa perlu bertanya.<br><span style="color:#777">Pick your route, see prices, then use the calculator to estimate your cost.</span></div>
 
+    <div style="background:rgba(212,80,74,.10);border:2px solid #D4504A;border-radius:11px;padding:12px 13px;margin-bottom:12px;font-size:12px;color:#fff;line-height:1.65">
+      <div style="font-weight:900;color:#FF8A80;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">⚠️ Penting — Baca Dulu Sebelum Pilih</div>
+      Banyak yang salah paham: <strong>Cairo → Jakarta</strong> artinya kirim <strong>DARI Cairo KE Jakarta</strong>.
+      Kalau kamu mau kirim <strong style="color:#4A9FD4">DARI Jakarta KE Cairo</strong>, ketuk tombol <strong style="color:#4A9FD4">🔵 Jakarta → Cairo</strong> — BUKAN tombol yang pertama.
+      <div style="color:#c9a0a0;font-size:11px;margin-top:4px">Many people confuse the direction. Tap the button matching where you're sending FROM.</div>
+    </div>
     <div class="sec"><div class="sec-lbl">Pilih Rute / Route</div>
       <div class="rt">
-        <button class="rt-btn on" id="hrt-cj" onclick="HSETRUTE('Cairo &#8594; Jakarta')">Cairo &#8594; Jakarta</button>
-        <button class="rt-btn" id="hrt-jc" onclick="HSETRUTE('Jakarta &#8594; Cairo')">Jakarta &#8594; Cairo</button>
+        <button class="rt-btn cj on" id="hrt-cj" onclick="HSETRUTE('Cairo &#8594; Jakarta')">🟡 Cairo &#8594; Jakarta<br><span style="font-weight:600;font-size:9.5px;opacity:.85">(kirim DARI Cairo)</span></button>
+        <button class="rt-btn jc" id="hrt-jc" onclick="HSETRUTE('Jakarta &#8594; Cairo')">🔵 Jakarta &#8594; Cairo<br><span style="font-weight:600;font-size:9.5px;opacity:.85">(kirim DARI Jakarta)</span></button>
       </div>
+      <div id="h-rute-confirm" style="margin-top:10px;padding:11px 13px;border-radius:10px;font-size:13px;font-weight:800;text-align:center;background:rgba(230,200,104,.14);border:2px solid #E6C868;color:#E6C868">🟡 KAMU MEMILIH: kirim barang DARI Cairo KE Jakarta</div>
     </div>
 
     <div class="sec"><div class="sec-lbl">Sisa Slot Bagasi / Available Slots</div>
@@ -1086,9 +1096,20 @@ var hItems = [{cat:"", qty:""}];
 function HSETRUTE(r) {
   hRute = r;
   hTripId = "";   // trip terikat rute — reset saat ganti rute
+  var isCJ = r.indexOf("Cairo \u2192") === 0;
   var cj = E("hrt-cj"), jc = E("hrt-jc");
-  if (cj) cj.className = "rt-btn" + (r.indexOf("Cairo \u2192") === 0 ? " on" : "");
-  if (jc) jc.className = "rt-btn" + (r.indexOf("Jakarta \u2192") === 0 ? " on" : "");
+  if (cj) cj.className = "rt-btn cj" + (isCJ ? " on" : "");
+  if (jc) jc.className = "rt-btn jc" + (!isCJ ? " on" : "");
+  var conf = E("h-rute-confirm");
+  if (conf) {
+    if (isCJ) {
+      conf.style.background = "rgba(230,200,104,.14)"; conf.style.border = "2px solid #E6C868"; conf.style.color = "#E6C868";
+      conf.innerHTML = "🟡 KAMU MEMILIH: kirim barang DARI Cairo KE Jakarta";
+    } else {
+      conf.style.background = "rgba(74,159,212,.14)"; conf.style.border = "2px solid #4A9FD4"; conf.style.color = "#4A9FD4";
+      conf.innerHTML = "🔵 KAMU MEMILIH: kirim barang DARI Jakarta KE Cairo";
+    }
+  }
   HARGA();
 }
 function hCats() {
