@@ -630,6 +630,21 @@ function ensureLainnya(arr){
 }
 
 var CFG = {cats:DCATS, rates:DRATES};
+// Konversi 1 barang ke setara kg — SAMA persis dgn itemBeratKg() di admin,
+// supaya slot yang dicek di sini konsisten dgn kapasitas yg dihitung admin.
+// Barang kg: apa adanya. Barang pcs: qty × kgPerPcs[kategori] (fallback 1kg/pcs
+// kalau admin belum atur rasio spesifik utk kategori itu).
+function itemKgEquivalent(it){
+  var q = parseFloat(it.qty||0) || 0;
+  var unit = it.type || "kg";
+  if (unit !== "pcs") return q;
+  var map = CFG.kgPerPcs || {};
+  var per = 0;
+  var cats = CFG.cats || DCATS;
+  for (var i=0;i<cats.length;i++){ if (cats[i].k===it.cat || cats[i].l===it.cat){ if (map[cats[i].k]>0) per = map[cats[i].k]; break; } }
+  if (!per && map[it.cat]>0) per = map[it.cat];
+  return q * (per>0 ? per : 1);
+}
 var rute = "Cairo \u2192 Jakarta";
 var tripId = "";
 var items = [];
@@ -755,7 +770,17 @@ function fromFS(fields) {
 // ── HELPERS ──────────────────────────────────
 function rp(n) { return "Rp " + Number(n||0).toLocaleString("id-ID"); }
 function tgl(s) { try { return new Date(s+"T00:00:00").toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"}); } catch(e){ return s||"-"; } }
-function WA(msg) { window.open("https://wa.me/" + AWA + "?text=" + encodeURIComponent(msg), "_blank"); }
+// Salam pembuka wajib di SETIAP pesan WhatsApp yang dikirim lewat aplikasi.
+// Dipasang terpusat di sini supaya semua tombol WA (tanya admin, konfirmasi
+// order, minta batal, dll) otomatis ikut, tanpa perlu mengubah teks satu per
+// satu. Ada pengaman anti-dobel kalau pesannya sudah diawali salam.
+var WA_SALAM = "Assalamualaikum warohmatullahi wabarokatuh \uD83D\uDE4F";
+function waSalam(msg) {
+  var m = String(msg == null ? "" : msg);
+  if (/^\s*assalamu/i.test(m)) return m;
+  return WA_SALAM + "\n\n" + m;
+}
+function WA(msg) { window.open("https://wa.me/" + AWA + "?text=" + encodeURIComponent(waSalam(msg)), "_blank"); }
 function toast(msg, type) {
   var t = document.getElementById("toast");
   t.textContent = msg; t.className = "toast " + (type||"ok") + " show";
@@ -1383,6 +1408,7 @@ function loadCFG() {
       if (Object.keys(rmap).length) CFG.rates = Object.assign({}, rmap, cfg.rates || {});
     }
     if (cfg.rates) CFG.rates = Object.assign({}, CFG.rates, cfg.rates);
+    if (cfg.kgPerPcs) CFG.kgPerPcs = cfg.kgPerPcs;
     if (cfg.bulkRates) CFG.bulkRates = cfg.bulkRates;
     if (cfg.bulkMin) CFG.bulkMin = cfg.bulkMin;
     if (cfg.bulkActive) CFG.bulkActive = cfg.bulkActive;
@@ -1727,6 +1753,23 @@ function SUB() {
   if (under.length) return toast("Minimal 1 kg atau 1 pcs per barang. Perbaiki jumlah barang kamu.","err");
   var sTrip = null; for (var i=0;i<trips.length;i++) if (trips[i].id===tripId) { sTrip=trips[i]; break; }
   if (sTrip && sTrip.status!=="open") return toast("Trip ini tidak menerima order baru","err");
+  // ── GERBANG KAPASITAS SLOT — KOREKSI: sebelumnya TIDAK ADA pengecekan
+  // sama sekali di sini, jadi customer bisa kirim order melebihi kapasitas
+  // yang ditetapkan admin (hanya tampil sbg info "perkiraan" di halaman
+  // Harga, tidak pernah benar-benar menahan pengiriman). Sekarang order
+  // yang akan membuat total pemakaian melebihi kapasitas trip DITOLAK di
+  // sini, sebelum sempat terkirim ke server. Konversi pcs→kg dihitung SAMA
+  // persis dgn cara admin menghitung kapasitas (itemKgEquivalent), supaya
+  // tidak ada selisih antara batas yg dicek di sini vs yg dicek admin.
+  if (sTrip && parseFloat(sTrip.capacity||0)>0) {
+    var capNow = parseFloat(sTrip.capacity||0);
+    var usedNow = parseFloat(sTrip.usedKg||0) || 0;
+    var sisaNow = Math.max(0, capNow - usedNow);
+    var beratOrderIni = valid.reduce(function(s,it){ return s + itemKgEquivalent(it); }, 0);
+    if (beratOrderIni > sisaNow) {
+      return toast("Slot trip ini tidak cukup \u2014 sisa \u00B1" + sisaNow.toFixed(1) + " kg, order kamu " + beratOrderIni.toFixed(1) + " kg. Pilih trip lain atau kurangi barang / Trip slot insufficient, choose another trip.", "err");
+    }
+  }
   var totGross = valid.reduce(function(s,it){ if(it.cat==="Lainnya"||it.adminPriced) return s; return s + parseFloat(it.qty||0)*(parseFloat(it.rate||0)||rate(it.cat,it.qty)); }, 0);
   var totQty = valid.reduce(function(s,it){ return s + parseFloat(it.qty||0); }, 0);
   var refDisc = 0, refData = null;
