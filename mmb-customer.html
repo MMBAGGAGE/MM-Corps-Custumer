@@ -2120,7 +2120,7 @@ function RTRACK(o, el) {
       var hargaTxt = isAdminWait ? "<span style='color:#888'>menunggu admin</span>" : rp((it.actQty||it.qty)*(it.actRate||it.rate||0));
       itH += "<div class='id-row'><div style='flex:1'><div style='font-size:12px;font-weight:700'>" + it.cat + "<span class='is" + sc2 + "'>" + sl + "</span></div>"
         + "<div style='font-size:11px;color:#555;margin-top:1px'>" + (it.desc||"") + " \u00B7 " + it.qty + " " + (it.type||"kg") + "</div>"
-        + (it.adminNote ? "<div style='font-size:11px;color:#C0392B;margin-top:1px'>\uD83D\uDCDD " + it.adminNote + "</div>" : "")
+        + (it.adminNote ? "<div style='font-size:11px;color:#C0392B;margin-top:2px'>\uD83D\uDCDD <strong>Catatan admin:</strong> " + it.adminNote + "</div>" : "")
         + ((itemCancelable && !isReqCancel) ? "<button onclick='REQCANCEL(\"" + (o.id||"") + "\"," + i + ",\"" + (o.code||"") + "\")' style='margin-top:6px;background:rgba(212,80,74,.1);border:1px solid rgba(212,80,74,.3);color:#D4504A;border-radius:7px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer'>\u274C Minta Batalkan Barang Ini</button>" : "")
         + (isReqCancel ? "<div style='font-size:10px;color:#D4A017;margin-top:5px'>\u23F3 Menunggu konfirmasi admin via WhatsApp</div>" : "")
         + "</div><div style='font-family:monospace;font-size:11px;color:#8B6914'>" + hargaTxt + "</div></div>";
