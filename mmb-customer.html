@@ -358,7 +358,11 @@ body{background-image:radial-gradient(120% 60% at 50% -8%,rgba(201,168,76,.10),t
           <span style="color:#888;font-size:11px">If goods are returned or rejected by Egyptian Customs, the return shipping cost from Cairo to Jakarta is borne by the customer. This is very rare, and when it happens it's usually due to inconsistent customs officer decisions or an unreasonably high customs charge.</span>
         </div>
         <div style="font-size:12px;color:#C8C0B0;line-height:1.7;margin-top:10px">
-          <strong style="color:#E8B4B0">2. Barang tidak diambil:</strong> Barang rute Jakarta → Cairo yang tidak diambil selama 1 bulan tanpa keterangan/konfirmasi dari penerima menjadi hak milik M.M Baggage.<br>
+          <strong style="color:#E8B4B0">2. Batas waktu pengambilan (maksimal H+2):</strong> Barang wajib diambil <strong>paling lambat 2 hari (H+2)</strong> setelah barang tiba, mengikuti jadwal yang ditetapkan admin. <strong>Tempat dan waktu pengambilan diumumkan di grup WhatsApp trip</strong> — pastikan kamu bergabung dan memantau grup agar tidak terlewat. Jika kamu berhalangan dan baru dapat mengambil setelah H+2, <strong>pelunasan pembayaran wajib diselesaikan lebih dahulu kepada admin</strong> sebelum barang diserahkan.<br>
+          <span style="color:#888;font-size:11px">Goods must be collected within 2 days (H+2) after arrival, following the schedule set by the admin. Pickup location and time are announced in the trip's WhatsApp group. If you can only collect after H+2, full payment must be settled with the admin before the goods are released.</span>
+        </div>
+        <div style="font-size:12px;color:#C8C0B0;line-height:1.7;margin-top:10px">
+          <strong style="color:#E8B4B0">3. Barang tidak diambil:</strong> Barang rute Jakarta → Cairo yang tidak diambil selama 1 bulan tanpa keterangan/konfirmasi dari penerima menjadi hak milik M.M Baggage.<br>
           <span style="color:#888;font-size:11px">Jakarta → Cairo shipments left uncollected for 1 month without any notice from the recipient become the property of M.M Baggage.</span>
         </div>
       </div>
@@ -1243,6 +1247,32 @@ function HSLOTS() {
       } else {
         h += "<div style='font-size:11px;color:#888'>Kapasitas belum diatur \u2014 tanya admin untuk ketersediaan.</div>";
       }
+      // Sisa slot PER JENIS BARANG. Angka ini diterbitkan admin ke dokumen trip,
+      // jadi customer tidak perlu (dan tidak bisa) membaca order milik orang lain.
+      var su = t.slotUsed || null;
+      if (su && typeof su === "object") {
+        var baris = "";
+        for (var k in su) {
+          if (!Object.prototype.hasOwnProperty.call(su, k)) continue;
+          var d = su[k] || {};
+          var lim = parseFloat(d.l||0)||0;
+          if (lim <= 0) continue;               // 0 = tanpa batas, tidak perlu ditampilkan
+          var dipakai = parseFloat(d.u||0)||0;
+          var sisaS = Math.max(0, lim - dipakai);
+          var unitS = d.t || "kg";
+          var namaS = d.n || k;
+          var warna = sisaS <= 0 ? "#C0392B" : (sisaS/lim <= 0.2 ? "#B8860B" : "#2E7D32");
+          var teks  = sisaS <= 0 ? "PENUH" : ("sisa " + (unitS==="pcs"?Math.floor(sisaS):sisaS) + " " + unitS);
+          baris += "<div style='display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:3px 0'>"
+                 + "<span style='color:#666'>" + namaS + "</span>"
+                 + "<strong style='color:" + warna + "'>" + teks + "</strong></div>";
+        }
+        if (baris) {
+          h += "<div style='margin-top:8px;padding-top:8px;border-top:1px dashed #E0D8C8'>"
+             + "<div style='font-size:10px;font-weight:700;letter-spacing:.5px;color:#8B6914;margin-bottom:3px'>SISA SLOT PER JENIS BARANG</div>"
+             + baris + "</div>";
+        }
+      }
       h += "</div>";
     }
     h += "<div style='background:rgba(212,160,23,.06);border:1px solid rgba(212,160,23,.2);border-radius:10px;padding:10px;margin-top:4px;font-size:11px;color:#C8C0B0;line-height:1.5'>\u2139\uFE0F Angka sisa slot adalah <strong>perkiraan</strong> dan bisa berubah sewaktu-waktu. Ketersediaan final dikonfirmasi admin saat order kamu diproses.</div>";
@@ -1510,7 +1540,7 @@ function RI() {
       + "</div>";
   }
   w.innerHTML = h;
-  try { var vm=E("ver-mark"); if(vm){ var hasL=false; for(var z=0;z<cats.length;z++){if(cats[z].k==="__LAIN__"){hasL=true;break;}} vm.textContent="v2.5 · "+cats.length+" kategori · Lainnya:"+(hasL?"YA":"TIDAK"); } } catch(e){}
+  try { var vm=E("ver-mark"); if(vm){ var hasL=false; for(var z=0;z<cats.length;z++){if(cats[z].k==="__LAIN__"){hasL=true;break;}} vm.textContent="v2.7 · "+cats.length+" kategori · Lainnya:"+(hasL?"YA":"TIDAK"); } } catch(e){}
 }
 function SC(i,k,t){ var isLain=(k==="__LAIN__"); items[i].cat=isLain?"Lainnya":k; items[i].type=t; if(isLain){ items[i].adminPriced=true; items[i].rate=0; items[i].catKey="__LAIN__"; } else { items[i].adminPriced=false; items[i].rate=rate(k,items[i].qty); items[i].catKey=k; } RI(); CALC(); }
 function A(){ items.push({id:Date.now(),cat:"",qty:"",desc:"",type:"kg"}); RI(); CALC(); }
